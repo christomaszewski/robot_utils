@@ -31,6 +31,7 @@ class DomainView(object):
 		self._fig.clf()
 		self._ax = self._fig.add_subplot(1,1,1)
 		self._ax.axis('equal')
+		self._ax.set_title(self._title)
 
 	def center_view_to_domain(self):
 		x_min, y_min, x_max, y_max = self._domain.bounds
@@ -94,3 +95,11 @@ class DomainView(object):
 
 	def save(self, filename='default.png'):
 		self._fig.savefig(filename, bbox_inches='tight', dpi=100)
+
+	@property
+	def title(self):
+		return self._title
+	
+	@title.setter
+	def title(self, new_title):
+		self._title = new_title
