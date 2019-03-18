@@ -6,6 +6,12 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
+numpy = "*"
+descartes = "*"
+matplotlib = "*"
+shapely = "*"
+networkx = "*"
+robot-primitives = {editable = true,git = "https://github.com/christomaszewski/robot_primitives.git"}
 
 [requires]
 python_version = "3.6"
