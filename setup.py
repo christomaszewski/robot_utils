@@ -13,7 +13,7 @@ setup(
     license = "BSD",
     keywords = "robotics utilities",
     url = "https://github.com/christomaszewski/robot_utils.git",
-    packages=['robot_utils', 'tests'],
+    packages=['robot_utils', 'tests', 'examples'],
     long_description=read('README.md'),
     classifiers=[
         "Development Status :: 3 - Alpha",
