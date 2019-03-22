@@ -93,7 +93,7 @@ class DomainView(object):
 		plt.clabel(contours, inline=True, fontsize=8)
 
 		plt.imshow(velocity, extent=[x_min, x_max, y_min, y_max], origin='lower',
-           cmap='Spectral', alpha=0.5)
+           cmap='Spectral', alpha=0.75)
 
 
 		self.center_view_to_domain()
