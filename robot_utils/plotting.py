@@ -26,7 +26,7 @@ class DomainView(object):
 		self.plot_domain()
 
 	def _draw(self):
-		plt.axis('off')
+		#plt.axis('off')
 		plt.show()
 		plt.pause(self._pause_length)
 
@@ -101,7 +101,7 @@ class DomainView(object):
 	def plot_path(self, path, plot_endpoints=False):
 		# need to check if path object is ok
 
-		undefined_color = 'xkcd:silver'
+		undefined_color = 'xkcd:steel grey'
 		color_map = matplotlib.cm.get_cmap('Spectral')
 
 		coord_pairs = zip(path.coord_list, path.coord_list[1:])
@@ -126,34 +126,88 @@ class DomainView(object):
 		
 		self._draw()
 
-	def pretty_plot_path(self, path, x_offset=0., y_offset=0.):
-		color = 'xkcd:silver'
+	def pretty_plot_path(self, path, offset=0.25, x_offset=0., y_offset=0.):
+		color = 'xkcd:steel grey'
 		coord_pairs = zip(path.coord_list, path.coord_list[1:])
 
 		plotted_segments = set()
+		prev_cp = None
 
 		for cp in coord_pairs:
-			seg = shapely.geometry.LineString(cp)
+			if prev_cp is not None:
+				pcp = np.array(prev_cp)
+				pcp_vec = pcp[1] - pcp[0]
+				unit_vec = pcp_vec / np.linalg.norm(pcp_vec)
+				offset_vec = unit_vec * offset
+				segs = self._offset_overlapping_segment(cp, plotted_segments, offset_vec)
+			else:
+				segs = [cp]
 
-			seg = self._offset_overlapping_segment(seg, plotted_segments, x_offset, y_offset)
+			for s in segs:
+				x,y = zip(*s)
+				self._ax.plot(x,y, color=color, linewidth=3, solid_capstyle='round', zorder=1)
 
-			x,y = zip(*seg.coords)
-			self._ax.plot(x,y, color=color, linewidth=3, solid_capstyle='round', zorder=1)
+				plotted_segments.add(s)
 
-			plotted_segments.add(seg)
+			prev_cp = cp
+
+		ingress = path.coord_list[0]
+		egress = path.coord_list[-1]
+		self._ax.plot(*ingress, marker=5, color='xkcd:kiwi green', markersize=25)
+		self._ax.plot(*egress, marker="X", color='xkcd:tomato', markersize=25)
 
 		self._draw()
 
+	def _offset_overlapping_segment(self, segment, plotted_segments, offset):
+		print(f"Call to offset func with params: segment={segment}, plotted_segments={plotted_segments}, and offset={offset}")
+		slope_func = lambda p1, p2: (p2[1]-p1[1])/(p2[0]-p1[0])
+		seg_start, seg_end = segment
 
-	def _offset_overlapping_segment(self, segment, plotted_segments, x_offset, y_offset):
 		for seg in plotted_segments:
-			if segment.intersects(seg):
-				new_coords = [(x+x_offset, y+y_offset) for coord in segment.coords for x,y in coord]
-				segment.coords = new_coords
+			s1, s2 = seg
 
-				segment = self._offset_overlapping_segment(segment, plotted_segments, x_offset, y_offset)
+			if s1[0] == s2[0]:
+				# plotted seg is vertical line
+				if seg_start[0] == seg_end[0] and seg_start[0] == s1[0]:
+					# test segment is also vertical and colinear with plotted seg
+					plotted_y_coords = [s1[1], s2[1]]
+					plotted_y_coords.sort()
 
-		return segment
+					# test to see if either start or end of test segment lie between plotted segment coords
+					if (seg_start[1] > plotted_y_coords[0] and seg_start[1] < plotted_y_coords[1]) or (seg_end[1] > plotted_y_coords[0] and seg_end[1] < plotted_y_coords[1]):
+						start = np.array(seg_start)
+						offset_start = tuple(start + offset)
+						end = np.array(seg_end)
+						offset_end = tuple(end + offset)
+
+						new_seg = self._offset_overlapping_segment((offset_start, offset_end), plotted_segments, offset)
+
+						segs = [(seg_start, offset_start), *new_seg, (offset_end, seg_end)]
+						return segs
+
+			else:
+				# plotted seg is not vertical line
+				slope = slope_func(s1, s2)
+				eq = lambda x: slope*(x-s1[0])+s1[1]
+
+				if seg_start[1] == eq(seg_start[0]) and seg_end[1] == eq(seg_end[0]):
+					# test segment is colinear to plotted seg
+					plotted_x_coords = [s1[0], s2[0]]
+					plotted_x_coords.sort()
+
+					print(seg_start, plotted_x_coords, seg_end)
+					if (seg_start[0] > plotted_x_coords[0] and seg_start[0] < plotted_x_coords[1]) or (seg_end[0] > plotted_x_coords[0] and seg_end[0] < plotted_x_coords[1]):
+						start = np.array(seg_start)
+						offset_start = tuple(start + offset)
+						end = np.array(seg_end)
+						offset_end = tuple(end + offset)
+
+						new_seg = self._offset_overlapping_segment((offset_start, offset_end), plotted_segments, offset)
+
+						segs = [(seg_start, offset_start), *new_seg, (offset_end, seg_end)]
+						return segs
+
+		return [segment]
 
 	def save(self, filename='default.png'):
 		self._fig.savefig(filename, bbox_inches='tight', dpi=100)
