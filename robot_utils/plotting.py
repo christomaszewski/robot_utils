@@ -127,7 +127,7 @@ class DomainView(object):
 		self._draw()
 
 	def pretty_plot_path(self, path, offset=0.25, x_offset=0., y_offset=0.):
-		color = 'xkcd:steel grey'
+		color = 'xkcd:black'
 		coord_pairs = zip(path.coord_list, path.coord_list[1:])
 
 		plotted_segments = set()
@@ -145,7 +145,7 @@ class DomainView(object):
 
 			for s in segs:
 				x,y = zip(*s)
-				self._ax.plot(x,y, color=color, linewidth=3, solid_capstyle='round', zorder=1)
+				self._ax.plot(x,y, color=color, linewidth=2, solid_capstyle='round', zorder=1)
 
 				plotted_segments.add(s)
 
@@ -173,8 +173,11 @@ class DomainView(object):
 					plotted_y_coords = [s1[1], s2[1]]
 					plotted_y_coords.sort()
 
-					# test to see if either start or end of test segment lie between plotted segment coords
-					if (seg_start[1] > plotted_y_coords[0] and seg_start[1] < plotted_y_coords[1]) or (seg_end[1] > plotted_y_coords[0] and seg_end[1] < plotted_y_coords[1]):
+					segment_y_coords = [seg_start[1], seg_end[1]]
+					segment_y_coords.sort()
+
+					# check if test segment is bounded by plotted segment
+					if plotted_y_coords[0] < segment_y_coords[0] and plotted_y_coords[1] > segment_y_coords[1]:
 						start = np.array(seg_start)
 						offset_start = tuple(start + offset)
 						end = np.array(seg_end)
@@ -184,6 +187,20 @@ class DomainView(object):
 
 						segs = [(seg_start, offset_start), *new_seg, (offset_end, seg_end)]
 						return segs
+
+					# test to see if any either start or end of test segment lie between plotted segment coords
+					#if (seg_start[1] > plotted_y_coords[0] and seg_start[1] < plotted_y_coords[1]) or (seg_end[1] > plotted_y_coords[0] and seg_end[1] < plotted_y_coords[1]):
+					for y_coord in plotted_y_coords:
+						if y_coord > segment_y_coords[0] and y_coord < segment_y_coords[1]:
+							start = np.array(seg_start)
+							offset_start = tuple(start + offset)
+							end = np.array(seg_end)
+							offset_end = tuple(end + offset)
+
+							new_seg = self._offset_overlapping_segment((offset_start, offset_end), plotted_segments, offset)
+
+							segs = [(seg_start, offset_start), *new_seg, (offset_end, seg_end)]
+							return segs
 
 			else:
 				# plotted seg is not vertical line
@@ -195,8 +212,10 @@ class DomainView(object):
 					plotted_x_coords = [s1[0], s2[0]]
 					plotted_x_coords.sort()
 
-					print(seg_start, plotted_x_coords, seg_end)
-					if (seg_start[0] > plotted_x_coords[0] and seg_start[0] < plotted_x_coords[1]) or (seg_end[0] > plotted_x_coords[0] and seg_end[0] < plotted_x_coords[1]):
+					segment_x_coords = [seg_start[0], seg_end[0]]
+					segment_x_coords.sort()
+
+					if plotted_x_coords[0] < segment_x_coords[0] and plotted_x_coords[1] > segment_x_coords[1]:
 						start = np.array(seg_start)
 						offset_start = tuple(start + offset)
 						end = np.array(seg_end)
@@ -206,6 +225,19 @@ class DomainView(object):
 
 						segs = [(seg_start, offset_start), *new_seg, (offset_end, seg_end)]
 						return segs
+
+					print(seg_start, plotted_x_coords, seg_end)
+					for x_coord in plotted_x_coords:
+						if x_coord > segment_x_coords[0] and x_coord < segment_x_coords[1]:
+							start = np.array(seg_start)
+							offset_start = tuple(start + offset)
+							end = np.array(seg_end)
+							offset_end = tuple(end + offset)
+
+							new_seg = self._offset_overlapping_segment((offset_start, offset_end), plotted_segments, offset)
+
+							segs = [(seg_start, offset_start), *new_seg, (offset_end, seg_end)]
+							return segs
 
 		return [segment]
 
