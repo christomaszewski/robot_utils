@@ -98,6 +98,33 @@ class DomainView(object):
 
 		self.center_view_to_domain()
 
+	def plot_configuration_space(self, vehicle_radius, domain_bg='xkcd:water blue', obstacle_bg='xkcd:reddish'):
+		self.clear_figure()
+
+		domain_patch = PolygonPatch(self._domain.polygon, facecolor=domain_bg, edgecolor=domain_bg, alpha=1.0, zorder=-10)
+		self._ax.add_patch(domain_patch)
+
+		offset_boundary, offset_obstacles = self._domain.get_configuration_space(vehicle_radius)
+
+		domain_patch = PolygonPatch(offset_boundary, facecolor='xkcd:dark mint green', edgecolor='xkcd:dark mint green', alpha=1.0, zorder=-10)
+		self._ax.add_patch(domain_patch)
+
+		for o in offset_obstacles:
+			obstacle_patch = PolygonPatch(o, facecolor=obstacle_bg, edgecolor=obstacle_bg, alpha=1.0, zorder=-5)
+			self._ax.add_patch(obstacle_patch)
+
+		for o in self._domain.obstacles.values():
+			obstacle_patch = PolygonPatch(o.polygon, facecolor=obstacle_bg, edgecolor='xkcd:black', alpha=1.0, zorder=-5)
+			self._ax.add_patch(obstacle_patch)
+
+
+		x_min, y_min, x_max, y_max = offset_boundary.bounds
+
+		self._ax.set_xlim(x_min-1, x_max+1)
+		self._ax.set_ylim(y_min-1, y_max+1)
+
+		self._draw()
+
 	def plot_path(self, path, plot_endpoints=False):
 		# need to check if path object is ok
 
