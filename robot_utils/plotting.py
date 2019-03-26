@@ -17,8 +17,9 @@ class DomainView(object):
 		multiplier = 10
 
 		plt.ion()
-		self._fig = plt.figure(figsize=(x_dist*multiplier,y_dist*multiplier), dpi=100) # todo make this use domain size
+		self._fig = plt.figure(figsize=(x_dist*multiplier + 2,y_dist*multiplier), dpi=100) # todo make this use domain size
 		self._ax = None
+		self._clim = None
 
 		self._pause_length = pause
 		self._title = title
@@ -41,6 +42,7 @@ class DomainView(object):
 
 		self._ax.set_xlim(x_min-1, x_max+1)
 		self._ax.set_ylim(y_min-1, y_max+1)
+		self._ax.axis('equal')
 
 		self._draw()
 
@@ -48,7 +50,6 @@ class DomainView(object):
 		self._domain = new_domain
 
 		self.clear_figure()
-
 
 	def plot_domain(self, domain_bg='xkcd:water blue', obstacle_bg='xkcd:reddish'):
 		self.clear_figure()
@@ -60,14 +61,9 @@ class DomainView(object):
 			obstacle_patch = PolygonPatch(o.polygon, facecolor=obstacle_bg, edgecolor=obstacle_bg, alpha=1.0, zorder=-5)
 			self._ax.add_patch(obstacle_patch)
 
-		x_min, y_min, x_max, y_max = self._domain.bounds
+		self.center_view_to_domain()
 
-		self._ax.set_xlim(x_min-1, x_max+1)
-		self._ax.set_ylim(y_min-1, y_max+1)
-
-		self._draw()
-
-	def plot_velocity_contours(self, field, axis=0):
+	def plot_velocity_contours(self, field, axis=0, show_contours=False):
 		x_min, y_min, x_max, y_max = self._domain.bounds
 
 		x_coords = np.linspace(x_min, x_max, 50)
@@ -87,14 +83,49 @@ class DomainView(object):
 
 		velocity = vec_wrapper(X, Y)
 
+		if self._clim is None:
+			self._clim = [velocity.min(), velocity.max()]
+
 		self.clear_figure()
 
-		contours = plt.contour(X, Y, velocity, 3, colors='black')
-		plt.clabel(contours, inline=True, fontsize=8)
+		if show_contours:
+			contours = plt.contour(X, Y, velocity, 3, colors='black')
+			plt.clabel(contours, inline=True, fontsize=8)
 
-		plt.imshow(velocity, extent=[x_min, x_max, y_min, y_max], origin='lower',
-           cmap='Spectral', alpha=0.75)
+		img = self._ax.imshow(velocity, extent=[x_min, x_max, y_min, y_max], origin='lower',
+										clim=self._clim, cmap='coolwarm', alpha=0.75)
 
+		c = self._fig.colorbar(img, ax=self._ax)
+		c.set_label('m/s')
+
+		self.center_view_to_domain()
+
+	def plot_vector_field(self, field):
+		""" Quiver plot of vector field """
+		x_min, y_min, x_max, y_max = self._domain.bounds
+		x_dist = abs(x_max-x_min)
+		y_dist = abs(y_max-y_min)
+
+		x_coords = np.linspace(x_min, x_max, x_dist)
+		y_coords = np.linspace(y_min, y_max, y_dist)
+
+		wrapper = lambda x,y : field[(x,y)]
+		vec_wrapper = np.vectorize(wrapper)
+
+		X, Y = np.meshgrid(x_coords, y_coords)
+		U, V = vec_wrapper(X, Y)
+		magnitudes = np.sqrt(U**2 + V**2)
+
+		if self._clim is None:
+			self._clim = [magnitudes.min(), magnitudes.max()]
+
+		self.clear_figure()
+
+		quiver = self._ax.quiver(X, Y, U, V, magnitudes, clim=self._clim,
+											angles='xy', scale_units='xy', scale=1, cmap='coolwarm')
+
+		c = self._fig.colorbar(quiver, ax=self._ax)
+		c.set_label('m/s')
 
 		self.center_view_to_domain()
 
@@ -117,13 +148,7 @@ class DomainView(object):
 			obstacle_patch = PolygonPatch(o.polygon, facecolor=obstacle_bg, edgecolor='xkcd:black', alpha=1.0, zorder=-5)
 			self._ax.add_patch(obstacle_patch)
 
-
-		x_min, y_min, x_max, y_max = offset_boundary.bounds
-
-		self._ax.set_xlim(x_min-1, x_max+1)
-		self._ax.set_ylim(y_min-1, y_max+1)
-
-		self._draw()
+		self.center_view_to_domain()
 
 	def plot_path(self, path, plot_endpoints=False):
 		# need to check if path object is ok
@@ -153,8 +178,7 @@ class DomainView(object):
 		
 		self._draw()
 
-	def pretty_plot_path(self, path, offset=0.25, x_offset=0., y_offset=0.):
-		color = 'xkcd:black'
+	def pretty_plot_path(self, path, offset=0.25, color='xkcd:black'):
 		coord_pairs = zip(path.coord_list, path.coord_list[1:])
 
 		plotted_segments = set()
@@ -278,3 +302,4 @@ class DomainView(object):
 	@title.setter
 	def title(self, new_title):
 		self._title = new_title
+		self._ax.set_title(new_title)
