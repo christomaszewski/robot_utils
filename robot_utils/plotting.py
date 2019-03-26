@@ -176,7 +176,7 @@ class DomainView(object):
 			x,y = zip(*seg_coords)
 			self._ax.plot(x, y, color=seg_color, linewidth=5, solid_capstyle='round', zorder=1)
 		
-		self._draw()
+		self.center_view_to_domain()
 
 	def pretty_plot_path(self, path, offset=0.25, color='xkcd:black'):
 		coord_pairs = zip(path.coord_list, path.coord_list[1:])
@@ -207,7 +207,7 @@ class DomainView(object):
 		self._ax.plot(*ingress, marker=5, color='xkcd:kiwi green', markersize=25)
 		self._ax.plot(*egress, marker="X", color='xkcd:tomato', markersize=25)
 
-		self._draw()
+		self.center_view_to_domain()
 
 	def _offset_overlapping_segment(self, segment, plotted_segments, offset):
 		print(f"Call to offset func with params: segment={segment}, plotted_segments={plotted_segments}, and offset={offset}")
