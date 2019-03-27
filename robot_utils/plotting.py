@@ -17,7 +17,7 @@ class DomainView(object):
 		multiplier = 10
 
 		plt.ion()
-		self._fig = plt.figure(figsize=(x_dist*multiplier + 2,y_dist*multiplier), dpi=100) # todo make this use domain size
+		self._fig = plt.figure(figsize=(x_dist*multiplier + 3,y_dist*multiplier), dpi=100) # todo make this use domain size
 		self._ax = None
 		self._clim = None
 
@@ -40,9 +40,9 @@ class DomainView(object):
 	def center_view_to_domain(self):
 		x_min, y_min, x_max, y_max = self._domain.bounds
 
-		self._ax.set_xlim(x_min-1, x_max+1)
-		self._ax.set_ylim(y_min-1, y_max+1)
-		self._ax.axis('equal')
+		self._ax.set_xlim(x_min-2.5, x_max+2.5)
+		self._ax.set_ylim(y_min-2.5, y_max+2.5)
+		#self._ax.axis('equal')
 
 		self._draw()
 
@@ -50,6 +50,12 @@ class DomainView(object):
 		self._domain = new_domain
 
 		self.clear_figure()
+
+	def plot_domain_boundary(self, color='xkcd:water blue'):
+		x,y = self._domain.polygon.exterior.xy
+		self._ax.plot(x,y, color=color, linewidth=3, solid_capstyle='round', zorder=2)
+
+		self.center_view_to_domain()
 
 	def plot_domain(self, domain_bg='xkcd:water blue', obstacle_bg='xkcd:reddish'):
 		self.clear_figure()
@@ -89,8 +95,8 @@ class DomainView(object):
 		self.clear_figure()
 
 		if show_contours:
-			contours = plt.contour(X, Y, velocity, 3, colors='black')
-			plt.clabel(contours, inline=True, fontsize=8)
+			contours = self._ax.contour(X, Y, velocity, 3, colors='black')
+			self._ax.clabel(contours, inline=True, fontsize=8)
 
 		img = self._ax.imshow(velocity, extent=[x_min, x_max, y_min, y_max], origin='lower',
 										clim=self._clim, cmap='coolwarm', alpha=0.75)
@@ -106,8 +112,8 @@ class DomainView(object):
 		x_dist = abs(x_max-x_min)
 		y_dist = abs(y_max-y_min)
 
-		x_coords = np.linspace(x_min, x_max, x_dist)
-		y_coords = np.linspace(y_min, y_max, y_dist)
+		x_coords = np.linspace(x_min+0.5, x_max-0.5, x_dist-1)
+		y_coords = np.linspace(y_min+2., y_max-0.25, y_dist/2)
 
 		wrapper = lambda x,y : field[(x,y)]
 		vec_wrapper = np.vectorize(wrapper)
