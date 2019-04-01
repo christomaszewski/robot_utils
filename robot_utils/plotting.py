@@ -207,7 +207,7 @@ class DomainView(object):
 		
 		self.center_view_to_domain()
 
-	def pretty_plot_path(self, path, offset=0.25, color='xkcd:black'):
+	def pretty_plot_path(self, path, offset=0.25, color='xkcd:black', linewidth=2):
 		coord_pairs = zip(path.coord_list, path.coord_list[1:])
 
 		plotted_segments = set()
@@ -225,7 +225,7 @@ class DomainView(object):
 
 			for s in segs:
 				x,y = zip(*s)
-				self._ax.plot(x,y, color=color, linewidth=2, solid_capstyle='round', zorder=1)
+				self._ax.plot(x,y, color=color, linewidth=linewidth, solid_capstyle='round', zorder=1)
 
 				plotted_segments.add(s)
 
