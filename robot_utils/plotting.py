@@ -8,7 +8,7 @@ import shapely
 class DomainView(object):
 	""" A class for plotting various primitives on top of domains """
 
-	def __init__(self, domain, title='Untitled', pause=0.00001):
+	def __init__(self, domain, title='Untitled', pause=0.00001, domain_buffer=2.5):
 		self._domain = domain
 		x_min, y_min, x_max, y_max = domain.bounds
 		x_dist = 1.0
@@ -21,8 +21,10 @@ class DomainView(object):
 		self._ax = None
 		self._clim = None
 
+		self._domain_buffer = domain_buffer
 		self._pause_length = pause
 		self._title = title
+		self._show_axes = True
 
 		self.plot_domain()
 
@@ -37,11 +39,23 @@ class DomainView(object):
 		self._ax.axis('equal')
 		self._ax.set_title(self._title)
 
+	def toggle_axes(self, show_axes=None):
+		self._show_axes = not self._show_axes
+
+		# Allow for explicit override using suppled func arg
+		if show_axes:
+			self._show_axes = show_axes
+
+		if self._show_axes:
+			self._ax.axis('on')
+		else:
+			self._ax.axis('off')
+
 	def center_view_to_domain(self):
 		x_min, y_min, x_max, y_max = self._domain.bounds
 
-		self._ax.set_xlim(x_min-2.5, x_max+2.5)
-		self._ax.set_ylim(y_min-2.5, y_max+2.5)
+		self._ax.set_xlim(x_min-self._domain_buffer, x_max+self._domain_buffer)
+		self._ax.set_ylim(y_min-self._domain_buffer, y_max+self._domain_buffer)
 		#self._ax.axis('equal')
 
 		self._draw()
@@ -92,7 +106,7 @@ class DomainView(object):
 		if self._clim is None:
 			self._clim = [velocity.min(), velocity.max()]
 
-		self.clear_figure()
+		#self.clear_figure()
 
 		if show_contours:
 			contours = self._ax.contour(X, Y, velocity, 3, colors='black')
@@ -106,14 +120,23 @@ class DomainView(object):
 
 		self.center_view_to_domain()
 
-	def plot_vector_field(self, field):
+	def plot_vector_field(self, field, cell_size=(1.,1.), vec_pos=None):
 		""" Quiver plot of vector field """
+		if not vec_pos:
+			vec_pos = (cell_size[0]/2, cell_size[1]/2)
+
 		x_min, y_min, x_max, y_max = self._domain.bounds
 		x_dist = abs(x_max-x_min)
 		y_dist = abs(y_max-y_min)
 
-		x_coords = np.linspace(x_min+0.5, x_max-0.5, x_dist-1)
-		y_coords = np.linspace(y_min+2., y_max-0.25, y_dist/2)
+		x_num_cells = np.floor(x_dist / cell_size[0])
+		y_num_cells = np.floor(y_dist / cell_size[1])
+		#x_coords = np.linspace(x_min+0.5, x_max-0.5, x_dist-1)
+		#y_coords = np.linspace(y_min+2., y_max-0.25, y_dist/2)
+		#x_coords = np.linspace(x_min+cell_size[0]/2, x_max-cell_size[0]/2, x_num_cells-1)
+		#y_coords = np.linspace(y_min+cell_size[1]/2, y_max-cell_size[1]/2, y_num_cells-1)
+		x_coords = np.linspace(x_min+vec_pos[0], x_max-cell_size[0]+vec_pos[0], x_num_cells)
+		y_coords = np.linspace(y_min+vec_pos[1], y_max-cell_size[1]+vec_pos[1], y_num_cells)
 
 		wrapper = lambda x,y : field[(x,y)]
 		vec_wrapper = np.vectorize(wrapper)
@@ -125,7 +148,7 @@ class DomainView(object):
 		if self._clim is None:
 			self._clim = [magnitudes.min(), magnitudes.max()]
 
-		self.clear_figure()
+		#self.clear_figure()
 
 		quiver = self._ax.quiver(X, Y, U, V, magnitudes, clim=self._clim,
 											angles='xy', scale_units='xy', scale=1, cmap='coolwarm')
