@@ -211,9 +211,17 @@ class DomainView(object):
 		coord_pairs = zip(path.coord_list, path.coord_list[1:])
 
 		plotted_segments = set()
+		plotted_verts = set()
 		prev_cp = None
+		prev_seg_adjusted = False
 
 		for cp in coord_pairs:
+			if prev_seg_adjusted:
+				# Need to adjust start point of current segment to match offset end point of prev segment
+				cp = (prev_cp[-1], cp[1])
+				prev_seg_adjusted = False
+
+			print(f"Current set of plotted vertices {plotted_verts}")
 			if prev_cp is not None:
 				pcp = np.array(prev_cp)
 				pcp_vec = pcp[1] - pcp[0]
@@ -223,13 +231,33 @@ class DomainView(object):
 			else:
 				segs = [cp]
 
-			for s in segs:
+			for s in segs[:-1]:
 				x,y = zip(*s)
 				self._ax.plot(x,y, color=color, linewidth=linewidth, solid_capstyle='round', zorder=1)
 
 				plotted_segments.add(s)
+				print('segment',s)
+				plotted_verts.update(s)
 
-			prev_cp = cp
+			last_seg = segs[-1]
+			print(last_seg, last_seg[-1])
+			if last_seg[-1] in plotted_verts:
+				print('Need to offset segment vertex')
+				# shorten last segment by offset distance
+				s = np.array(last_seg)
+				s_vec = s[0] - s[1]
+				unit_s_vec = s_vec / np.linalg.norm(s_vec)
+				offset_vec = unit_s_vec * offset
+				new_end_point = tuple(s[1] + offset_vec)
+				last_seg = (last_seg[0], new_end_point)
+				prev_seg_adjusted = True
+
+			x,y = zip(*last_seg)
+			self._ax.plot(x,y, color=color, linewidth=linewidth, solid_capstyle='round', zorder=1)
+			plotted_segments.add(last_seg)
+			plotted_verts.update(last_seg)
+
+			prev_cp = last_seg
 
 		ingress = path.coord_list[0]
 		egress = path.coord_list[-1]
