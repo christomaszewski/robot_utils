@@ -221,7 +221,6 @@ class DomainView(object):
 				cp = (prev_cp[-1], cp[1])
 				prev_seg_adjusted = False
 
-			print(f"Current set of plotted vertices {plotted_verts}")
 			if prev_cp is not None:
 				pcp = np.array(prev_cp)
 				pcp_vec = pcp[1] - pcp[0]
@@ -236,13 +235,10 @@ class DomainView(object):
 				self._ax.plot(x,y, color=color, linewidth=linewidth, solid_capstyle='round', zorder=1)
 
 				plotted_segments.add(s)
-				print('segment',s)
 				plotted_verts.update(s)
 
 			last_seg = segs[-1]
-			print(last_seg, last_seg[-1])
 			if last_seg[-1] in plotted_verts:
-				print('Need to offset segment vertex')
 				# shorten last segment by offset distance
 				s = np.array(last_seg)
 				s_vec = s[0] - s[1]
@@ -260,7 +256,7 @@ class DomainView(object):
 			prev_cp = last_seg
 
 		ingress = path.coord_list[0]
-		egress = path.coord_list[-1]
+		egress = prev_cp[-1]
 		self._ax.plot(*ingress, marker=5, color='xkcd:kiwi green', markersize=25)
 		self._ax.plot(*egress, marker="X", color='xkcd:tomato', markersize=25)
 
