@@ -12,6 +12,8 @@ matplotlib = "*"
 shapely = "*"
 networkx = "*"
 robot-primitives = {editable = true,git = "https://github.com/christomaszewski/robot_primitives.git"}
+autograd = "*"
+scipy = "*"
 
 [requires]
 python_version = "3.6"
