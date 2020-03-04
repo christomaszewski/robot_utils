@@ -11,8 +11,8 @@ class SimpleSimulator(object):
 	def __init__(self, flow_field):
 
 		self._flow_field = flow_field
-		self._dt = 0.0001 #s
-		self._eps = 0.001 #m
+		self._dt = 0.01 #s
+		self._eps = 0.01 #m
 
 	def simulate_path(self, path, boat_speed):
 		# Instantiate starting position and time
@@ -27,8 +27,14 @@ class SimpleSimulator(object):
 		target_idx = 1
 		curr_target = np.asarray(path[target_idx])
 
+		last_print_time = 0.
+		curr_speed = 0.
 		# Run sim until last point in path has been reached
 		while target_idx < path.size:
+			if np.ceil(curr_time) % 60 == 0 and curr_time-last_print_time > 1.0:
+				print(f"Time: {curr_time}, Position: {curr_pos}, Speed: {curr_speed}, Waypoint: {target_idx}/{path.size}")
+				last_print_time = curr_time
+
 			flow_vec = np.asarray(self._flow_field[tuple(curr_pos)])
 			flow_speed = np.linalg.norm(flow_vec)
 
@@ -102,6 +108,7 @@ class SimpleSimulator(object):
 
 			curr_time += self._dt
 			curr_pos += (effective_vec * self._dt)
+			curr_speed = np.linalg.norm(effective_vec)
 			output.append((curr_time, curr_pos))
 
 			if np.isnan(curr_pos[0]) or np.isnan(curr_pos[1]):

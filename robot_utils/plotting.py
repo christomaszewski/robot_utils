@@ -4,6 +4,265 @@ import numpy as np
 from descartes.patch import PolygonPatch
 import itertools
 import shapely
+import cartopy
+import cartopy.crs as ccrs
+from cartopy.io.img_tiles import MapboxTiles
+
+class MapView(object):
+	""" A class for plotting various primitives on top of a map """
+
+	api_key = 'pk.eyJ1IjoiY2hyaXN0b21hc3pld3NraSIsImEiOiJjanJtN2h1OTAwZ2lnM3ltdDBmZDFjc3FyIn0.2i83Ad3s4mi9DR6ZLG-CFg'
+
+	def __init__(self, bounds, title='untitled', style='terrain-rgb', pause=0.00001):
+		self._bounds = bounds
+		x_min, y_min, x_max, y_max = bounds
+
+		plt.ion()
+		self._fig = plt.figure(figsize=(12,10), dpi=100) # todo make this use domain size
+		self._ax = None
+		self._clim = None
+
+		self._pause_length = pause
+		self._title = title
+		self._show_axes = True
+
+		self._imagery = MapboxTiles(MapView.api_key, style)
+		self._imagery._image_url = self._image_url
+
+		self._ax = self._fig.add_subplot(1,1,1, projection=self._imagery.crs)
+		extent_buffer = 10
+		extents = [x_min-extent_buffer, x_max+extent_buffer, y_min-extent_buffer, y_max+extent_buffer]
+
+		self._ax.set_extent(extents, crs=ccrs.UTM(17))
+
+		self._ax.add_image(self._imagery, 17) # Satellite 17
+		print('init successful')
+
+	@classmethod
+	def from_domain(cls, domain, **kwargs):
+		return cls(domain.bounds, **kwargs)
+
+	def _image_url(self, tile):
+		x, y, z = tile
+		# /styles/v1/{username}/{style_id}/tiles/{tilesize}/{z}/{x}/{y}{@2x}
+		#url = (f"https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.png?access_token={MapView.api_key}")
+		url = (f"https://api.mapbox.com/styles/v1/christomaszewski/ck72d2m0o0igw1io7fibjekq9/tiles/256/{z}/{x}/{y}@2x?access_token={MapView.api_key}")
+		return url
+
+	def _draw(self):
+		#plt.axis('off')
+		plt.show()
+		plt.pause(self._pause_length)
+
+	def clear_figure(self):
+		self._fig.clf()
+		self._ax = self._fig.add_subplot(1,1,1, projection=self._imagery.crs)
+		self._ax.axis('equal')
+		self._ax.set_title(self._title)
+
+	def plot_domain_boundary(self, domain, color='xkcd:water blue'):
+		x,y = domain.polygon.exterior.xy
+		self._ax.plot(x,y, color=color, linewidth=3, solid_capstyle='round', zorder=2, transform=ccrs.UTM(17))
+
+		self._draw()
+
+	def plot_vector_field(self, field):
+		x_min, y_min, x_max, y_max = self._bounds
+
+		x_cell_count = 25
+		y_cell_count = 25
+
+		wrapper = lambda x,y: field[(x,y)]
+		vectorized_func = np.vectorize(wrapper)
+
+		x_grid, y_grid = np.mgrid[x_min:x_max:(x_cell_count*1j),y_min:y_max:(y_cell_count*1j)] 
+
+		x_samples, y_samples = vectorized_func(x_grid, y_grid)
+
+		magnitudes = np.sqrt(x_samples**2 + y_samples**2)
+
+		clim = [np.nanmin(magnitudes), np.nanmax(magnitudes)]
+
+		print("plotting quiver")
+		q = self._ax.quiver(x_grid, y_grid, x_samples, y_samples, magnitudes, transform=ccrs.UTM(17), 
+						clim=clim, angles='xy', scale_units='xy', scale=0.05, pivot='mid', #minshaft=2.0, 
+						cmap=plt.get_cmap('rainbow'))
+
+		c = self._fig.colorbar(q, ax=self._ax)
+		c.set_label('m/s')
+
+		self._draw()
+
+	def plot_path(self, path, plot_endpoints=False):
+		# need to check if path object is ok
+
+		undefined_color = 'xkcd:steel grey'
+		color_map = matplotlib.cm.get_cmap('Spectral')
+
+		coord_pairs = zip(path.coord_list, path.coord_list[1:])
+		segment_colors = []
+		
+		# Currently colors path by thrust constraint, change to be able to specify what to color by
+		if path.is_constrained('thrust'):
+			segment_colors.extend(map(lambda thrust_range: undefined_color if thrust_range is None else color_map(np.mean(thrust_range)), path.thrust[1:]))
+		else:
+			segment_colors.extend(itertools.repeat(undefined_color, path.size-1))
+
+		print(path.coord_list)
+		x,y = zip(*path.coord_list)
+		self._ax.plot(x, y, 'o', color=undefined_color, markersize=4, zorder=1, transform=ccrs.UTM(17))
+		if plot_endpoints:
+			self._ax.plot(x[0], y[0], marker=5, color='xkcd:kiwi green', markersize=25, transform=ccrs.UTM(17))
+			self._ax.plot(x[-1], y[-1], marker=9, color='xkcd:tomato', markersize=25, transform=ccrs.UTM(17))
+
+		for seg_coords, seg_color in zip(coord_pairs, segment_colors):
+			x,y = zip(*seg_coords)
+			self._ax.plot(x, y, color=seg_color, linewidth=5, solid_capstyle='round', zorder=1, transform=ccrs.UTM(17))
+		
+		self._draw()
+
+	def pretty_plot_path(self, path, offset=0.25, color='xkcd:steel grey', linewidth=4):
+		coord_pairs = zip(path.coord_list, path.coord_list[1:])
+
+		plotted_segments = set()
+		plotted_verts = set()
+		prev_cp = None
+		prev_seg_adjusted = False
+
+		for cp in coord_pairs:
+			if prev_seg_adjusted:
+				# Need to adjust start point of current segment to match offset end point of prev segment
+				cp = (prev_cp[-1], cp[1])
+				prev_seg_adjusted = False
+
+			if prev_cp is not None:
+				pcp = np.array(prev_cp)
+				pcp_vec = pcp[1] - pcp[0]
+				unit_vec = pcp_vec / np.linalg.norm(pcp_vec)
+				offset_vec = unit_vec * offset
+				segs = self._offset_overlapping_segment(cp, plotted_segments, offset_vec)
+			else:
+				segs = [cp]
+
+			for s in segs[:-1]:
+				x,y = zip(*s)
+				self._ax.plot(x,y, color=color, linewidth=linewidth, solid_capstyle='round', zorder=1, transform=ccrs.UTM(17))
+
+				plotted_segments.add(s)
+				plotted_verts.update(s)
+
+			last_seg = segs[-1]
+			if last_seg[-1] in plotted_verts:
+				# shorten last segment by offset distance
+				s = np.array(last_seg)
+				s_vec = s[0] - s[1]
+				unit_s_vec = s_vec / np.linalg.norm(s_vec)
+				offset_vec = unit_s_vec * offset
+				new_end_point = tuple(s[1] + offset_vec)
+				last_seg = (last_seg[0], new_end_point)
+				prev_seg_adjusted = True
+
+			x,y = zip(*last_seg)
+			self._ax.plot(x,y, color=color, linewidth=linewidth, solid_capstyle='round', zorder=1, transform=ccrs.UTM(17))
+			plotted_segments.add(last_seg)
+			plotted_verts.update(last_seg)
+
+			prev_cp = last_seg
+
+		ingress = path.coord_list[0]
+		egress = prev_cp[-1]
+		self._ax.plot(*ingress, marker=5, color='xkcd:kiwi green', markersize=25, transform=ccrs.UTM(17))
+		self._ax.plot(*egress, marker="X", color='xkcd:tomato', markersize=25, transform=ccrs.UTM(17))
+
+		self._draw()
+
+	def _offset_overlapping_segment(self, segment, plotted_segments, offset):
+		""" Does not work for arbitary domain orientations!!! """
+		print(f"Call to offset func with params: segment={segment}, plotted_segments={plotted_segments}, and offset={offset}")
+		slope_func = lambda p1, p2: (p2[1]-p1[1])/(p2[0]-p1[0])
+		seg_start, seg_end = segment
+
+		for seg in plotted_segments:
+			s1, s2 = seg
+
+			if s1[0] == s2[0]:
+				# plotted seg is vertical line
+				if seg_start[0] == seg_end[0] and seg_start[0] == s1[0]:
+					# test segment is also vertical and colinear with plotted seg
+					plotted_y_coords = [s1[1], s2[1]]
+					plotted_y_coords.sort()
+
+					segment_y_coords = [seg_start[1], seg_end[1]]
+					segment_y_coords.sort()
+
+					# check if test segment is bounded by plotted segment
+					if plotted_y_coords[0] < segment_y_coords[0] and plotted_y_coords[1] > segment_y_coords[1]:
+						start = np.array(seg_start)
+						offset_start = tuple(start + offset)
+						end = np.array(seg_end)
+						offset_end = tuple(end + offset)
+
+						new_seg = self._offset_overlapping_segment((offset_start, offset_end), plotted_segments, offset)
+
+						segs = [(seg_start, offset_start), *new_seg, (offset_end, seg_end)]
+						return segs
+
+					# test to see if any either start or end of test segment lie between plotted segment coords
+					#if (seg_start[1] > plotted_y_coords[0] and seg_start[1] < plotted_y_coords[1]) or (seg_end[1] > plotted_y_coords[0] and seg_end[1] < plotted_y_coords[1]):
+					for y_coord in plotted_y_coords:
+						if y_coord > segment_y_coords[0] and y_coord < segment_y_coords[1]:
+							start = np.array(seg_start)
+							offset_start = tuple(start + offset)
+							end = np.array(seg_end)
+							offset_end = tuple(end + offset)
+
+							new_seg = self._offset_overlapping_segment((offset_start, offset_end), plotted_segments, offset)
+
+							segs = [(seg_start, offset_start), *new_seg, (offset_end, seg_end)]
+							return segs
+
+			else:
+				# plotted seg is not vertical line
+				slope = slope_func(s1, s2)
+				eq = lambda x: slope*(x-s1[0])+s1[1]
+
+				if seg_start[1] == eq(seg_start[0]) and seg_end[1] == eq(seg_end[0]):
+					# test segment is colinear to plotted seg
+					plotted_x_coords = [s1[0], s2[0]]
+					plotted_x_coords.sort()
+
+					segment_x_coords = [seg_start[0], seg_end[0]]
+					segment_x_coords.sort()
+
+					if plotted_x_coords[0] < segment_x_coords[0] and plotted_x_coords[1] > segment_x_coords[1]:
+						start = np.array(seg_start)
+						offset_start = tuple(start + offset)
+						end = np.array(seg_end)
+						offset_end = tuple(end + offset)
+
+						new_seg = self._offset_overlapping_segment((offset_start, offset_end), plotted_segments, offset)
+
+						segs = [(seg_start, offset_start), *new_seg, (offset_end, seg_end)]
+						return segs
+
+					print(seg_start, plotted_x_coords, seg_end)
+					for x_coord in plotted_x_coords:
+						if x_coord > segment_x_coords[0] and x_coord < segment_x_coords[1]:
+							start = np.array(seg_start)
+							offset_start = tuple(start + offset)
+							end = np.array(seg_end)
+							offset_end = tuple(end + offset)
+
+							new_seg = self._offset_overlapping_segment((offset_start, offset_end), plotted_segments, offset)
+
+							segs = [(seg_start, offset_start), *new_seg, (offset_end, seg_end)]
+							return segs
+
+		return [segment]
+
+	def save(self, filename):
+		self._fig.savefig(filename, bbox_inches='tight', dpi=100)
+
 
 class DomainView(object):
 	""" A class for plotting various primitives on top of domains """
@@ -17,7 +276,7 @@ class DomainView(object):
 		multiplier = 10
 
 		plt.ion()
-		self._fig = plt.figure(figsize=(x_dist*multiplier + 3,y_dist*multiplier), dpi=100) # todo make this use domain size
+		self._fig = plt.figure(figsize=(20,10), dpi=100) # todo make this use domain size
 		self._ax = None
 		self._clim = None
 
@@ -28,10 +287,12 @@ class DomainView(object):
 
 		self.plot_domain()
 
-	def _draw(self):
+	def _draw(self, pause=None):
+		if pause is None:
+			pause = self._pause_length
 		#plt.axis('off')
 		plt.show()
-		plt.pause(self._pause_length)
+		plt.pause(pause)
 
 	def clear_figure(self):
 		self._fig.clf()
@@ -120,6 +381,33 @@ class DomainView(object):
 
 		self.center_view_to_domain()
 
+	def plot_vf(self, field):
+		x_min, y_min, x_max, y_max = self._domain.bounds
+
+		x_cell_count = 25
+		y_cell_count = 25
+
+		wrapper = lambda x,y: field[(x,y)]
+		vectorized_func = np.vectorize(wrapper)
+
+		x_grid, y_grid = np.mgrid[x_min:x_max:(x_cell_count*1j),y_min:y_max:(y_cell_count*1j)] 
+
+		x_samples, y_samples = vectorized_func(x_grid, y_grid)
+
+		magnitudes = np.sqrt(x_samples**2 + y_samples**2)
+
+		clim = [np.nanmin(magnitudes), np.nanmax(magnitudes)]
+
+		print("plotting quiver")
+		q = self._ax.quiver(x_grid, y_grid, x_samples, y_samples, magnitudes, 
+						clim=clim, angles='xy', scale_units='xy', scale=0.05, pivot='mid', minshaft=1.5, 
+						cmap=plt.get_cmap('rainbow'))
+
+		c = self._fig.colorbar(q, ax=self._ax)
+		c.set_label('m/s')
+
+		self._draw()
+
 	def plot_vector_field(self, field, cell_size=(1.,1.), vec_pos=None):
 		""" Quiver plot of vector field """
 		if not vec_pos:
@@ -179,10 +467,10 @@ class DomainView(object):
 
 		self.center_view_to_domain()
 
-	def plot_path(self, path, plot_endpoints=False):
+	def plot_path(self, path, color='xkcd:steel grey', plot_endpoints=False):
 		# need to check if path object is ok
 
-		undefined_color = 'xkcd:steel grey'
+		undefined_color = color
 		color_map = matplotlib.cm.get_cmap('Spectral')
 
 		coord_pairs = zip(path.coord_list, path.coord_list[1:])
@@ -194,7 +482,6 @@ class DomainView(object):
 		else:
 			segment_colors.extend(itertools.repeat(undefined_color, path.size-1))
 
-		print(path.coord_list)
 		x,y = zip(*path.coord_list)
 		self._ax.plot(x, y, 'o', color=undefined_color, markersize=4, zorder=1)
 		if plot_endpoints:
@@ -203,9 +490,67 @@ class DomainView(object):
 
 		for seg_coords, seg_color in zip(coord_pairs, segment_colors):
 			x,y = zip(*seg_coords)
-			self._ax.plot(x, y, color=seg_color, linewidth=5, solid_capstyle='round', zorder=1)
+			self._ax.plot(x, y, color=seg_color, linewidth=2, solid_capstyle='round', zorder=1)
 		
 		self.center_view_to_domain()
+
+	def animate_path(self, path, color='xkcd:steel grey', pause=0.2):
+
+		coord_pairs = zip(path.coord_list, path.coord_list[1:])
+
+		for seg_coords in zip(path.coord_list, path.coord_list[1:]):
+			x,y = zip(*seg_coords)
+			self._ax.plot(x, y, color=color, linewidth=2, solid_capstyle='round', zorder=1)
+			self._draw(pause)
+		
+		self.center_view_to_domain()
+
+	def plot_constraints(self, constraints, color='xkcd:melon', plot_direction=True, plot_sequence=True):
+		for idx, c in enumerate(constraints):
+			c_coords = c.get_coord_list()
+
+			x,y = zip(*c_coords)
+			self._ax.plot(x, y, 'o', color=color, markersize=4, zorder=1)
+			self._ax.plot(x, y, color=color, linewidth=2, solid_capstyle='round')
+
+			if c.is_constrained('direction') and plot_direction:
+				#direction = c.direction
+				coord_pairs = zip(c_coords, c_coords[1:])
+				for cp in coord_pairs:
+					pts = [np.array(pt) for pt in cp]
+					mid_pt = np.mean(pts, axis=0)
+					# Don't need to do any modification for direction because get_coord_list() should return the
+					# coord list in order if direction is constrained
+					#seg_vec = pts[direction[1]] - pts[direction[0]]
+					seg_vec = pts[1] - pts[0]
+					seg_len = np.linalg.norm(seg_vec)
+					seg_dir = seg_vec/seg_len
+					arrow_len = 0.1 * seg_len
+
+					arrow_base = mid_pt - 0.5*arrow_len*seg_dir
+					arrow_vec = arrow_len*seg_dir
+					#print(arrow_base[0], arrow_base[1], arrow_vec[0], arrow_vec[1])
+					self._ax.arrow(arrow_base[0], arrow_base[1], arrow_vec[0], arrow_vec[1], fc=color,
+										shape='full', lw=0, length_includes_head=True, head_width=arrow_len/2., zorder=2)
+
+
+			if plot_sequence:
+				self._ax.annotate(f"{idx}",
+										xy=c_coords[0], xycoords='data',
+										xytext=(0, -70), textcoords='offset points',
+										size=20,
+										bbox=dict(boxstyle="round",
+										fc=(1.0, 0.7, 0.7),
+										ec=(1., .5, .5)),
+										arrowprops=dict(arrowstyle="wedge,tail_width=1.",
+										fc=(1.0, 0.7, 0.7), ec=(1., .5, .5),
+										patchA=None,
+										patchB=None,
+										relpos=(0.2, 0.8),
+										connectionstyle="arc3,rad=-0.1"))
+
+
+			self._draw()
 
 	def pretty_plot_path(self, path, offset=0.25, color='xkcd:black', linewidth=2):
 		coord_pairs = zip(path.coord_list, path.coord_list[1:])
