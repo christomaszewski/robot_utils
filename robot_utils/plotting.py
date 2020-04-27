@@ -553,7 +553,8 @@ class DomainView(object):
 			self._draw()
 
 	def pretty_plot_path(self, path, offset=0.25, color='xkcd:black', linewidth=2):
-		coord_pairs = zip(path.coord_list, path.coord_list[1:])
+		tuple_coords = list(map(tuple, path.coord_list))
+		coord_pairs = zip(tuple_coords, tuple_coords[1:])
 
 		plotted_segments = set()
 		plotted_verts = set()
@@ -595,6 +596,7 @@ class DomainView(object):
 
 			x,y = zip(*last_seg)
 			self._ax.plot(x,y, color=color, linewidth=linewidth, solid_capstyle='round', zorder=1)
+
 			plotted_segments.add(last_seg)
 			plotted_verts.update(last_seg)
 
@@ -608,7 +610,7 @@ class DomainView(object):
 		self.center_view_to_domain()
 
 	def _offset_overlapping_segment(self, segment, plotted_segments, offset):
-		print(f"Call to offset func with params: segment={segment}, plotted_segments={plotted_segments}, and offset={offset}")
+		print(f"Call to offset func with params: segment={segment}, and offset={offset}")
 		slope_func = lambda p1, p2: (p2[1]-p1[1])/(p2[0]-p1[0])
 		seg_start, seg_end = segment
 
@@ -675,7 +677,7 @@ class DomainView(object):
 						segs = [(seg_start, offset_start), *new_seg, (offset_end, seg_end)]
 						return segs
 
-					print(seg_start, plotted_x_coords, seg_end)
+					#print(seg_start, plotted_x_coords, seg_end)
 					for x_coord in plotted_x_coords:
 						if x_coord > segment_x_coords[0] and x_coord < segment_x_coords[1]:
 							start = np.array(seg_start)
