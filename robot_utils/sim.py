@@ -32,7 +32,7 @@ class SimpleSimulator(object):
 		# Run sim until last point in path has been reached
 		while target_idx < path.size:
 			if np.ceil(curr_time) % 60 == 0 and curr_time-last_print_time > 1.0:
-				print(f"Time: {curr_time}, Position: {curr_pos}, Speed: {curr_speed}, Waypoint: {target_idx}/{path.size}")
+				print(f"Time: {curr_time:.3f}, Position: ({curr_pos[0]:.3f}, {curr_pos[1]:.3f}), Speed: {curr_speed:.3f}, Waypoint: {target_idx}/{path.size}")
 				last_print_time = curr_time
 
 			flow_vec = np.asarray(self._flow_field[tuple(curr_pos)])
