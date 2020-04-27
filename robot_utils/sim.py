@@ -8,11 +8,11 @@ class SimpleSimulator(object):
 		 a flow field assuming a constant nominal velocity and instantaneous changes
 		 of direction"""
 
-	def __init__(self, flow_field):
+	def __init__(self, flow_field, dt=0.01, arrival_dist=0.01):
 
 		self._flow_field = flow_field
-		self._dt = 0.01 #s
-		self._eps = 0.01 #m
+		self._dt = dt #s
+		self._eps = arrival_dist #m
 
 	def simulate_path(self, path, boat_speed):
 		# Instantiate starting position and time
