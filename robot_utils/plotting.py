@@ -381,11 +381,11 @@ class DomainView(object):
 
 		self.center_view_to_domain()
 
-	def plot_vf(self, field):
+	def plot_vf(self, field, num_cells=(25,25), scale=0.05, pivot='mid', minshaft=1.5):
 		x_min, y_min, x_max, y_max = self._domain.bounds
 
-		x_cell_count = 25
-		y_cell_count = 25
+		x_cell_count = num_cells[0]
+		y_cell_count = num_cells[1]
 
 		wrapper = lambda x,y: field[(x,y)]
 		vectorized_func = np.vectorize(wrapper)
@@ -400,7 +400,7 @@ class DomainView(object):
 
 		print("plotting quiver")
 		q = self._ax.quiver(x_grid, y_grid, x_samples, y_samples, magnitudes, 
-						clim=clim, angles='xy', scale_units='xy', scale=0.05, pivot='mid', minshaft=1.5, 
+						clim=clim, angles='xy', scale_units='xy', scale=scale, pivot=pivot, minshaft=minshaft, 
 						cmap=plt.get_cmap('rainbow'))
 
 		c = self._fig.colorbar(q, ax=self._ax)
