@@ -549,8 +549,13 @@ class DomainView(object):
 										relpos=(0.2, 0.8),
 										connectionstyle="arc3,rad=-0.1"))
 
-
 			self._draw()
+
+	def plot_endpoints(self, path, ingress_marker=5, ingress_color='xkcd:kiwi green', egress_marker='X', egress_color='xkcd:tomato', marker_size=25):
+		ingress = path.coord_list[0]
+		egress = path.coord_list[-1]
+		self._ax.plot(*ingress, marker=ingress_marker, color=ingress_color, markersize=marker_size)
+		self._ax.plot(*egress, marker=egress_marker, color=egress_color, markersize=marker_size)
 
 	def pretty_plot_path(self, path, offset=0.25, color='xkcd:black', linewidth=2):
 		tuple_coords = list(map(tuple, path.coord_list))
