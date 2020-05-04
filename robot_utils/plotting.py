@@ -267,17 +267,17 @@ class MapView(object):
 class DomainView(object):
 	""" A class for plotting various primitives on top of domains """
 
-	def __init__(self, domain, title='Untitled', pause=0.00001, domain_buffer=2.5):
+	def __init__(self, domain, title='', pause=0.00001, domain_buffer=2.5):
 		self._domain = domain
 		x_min, y_min, x_max, y_max = domain.bounds
-		x_dist = 1.0
-		y_dist = (y_max - y_min)/x_max - x_min
-
-		multiplier = 10
+		x_dist = 20.
+		y_dist = 20.*(y_max - y_min)/(x_max - x_min)
 
 		plt.ion()
-		self._fig = plt.figure(figsize=(20,10), dpi=100) # todo make this use domain size
-		self._ax = None
+
+		self._fig = plt.figure(figsize=(x_dist, y_dist), dpi=100) # todo make this use domain size
+		self._ax = self._fig.add_subplot(1,1,1)
+		self._ax.set_aspect('equal')
 		self._clim = None
 
 		self._domain_buffer = domain_buffer
@@ -290,14 +290,15 @@ class DomainView(object):
 	def _draw(self, pause=None):
 		if pause is None:
 			pause = self._pause_length
-		#plt.axis('off')
+
 		plt.show()
 		plt.pause(pause)
 
 	def clear_figure(self):
 		self._fig.clf()
 		self._ax = self._fig.add_subplot(1,1,1)
-		self._ax.axis('equal')
+		self._ax.set_aspect('equal')
+		#self._ax.axis('equal')
 		self._ax.set_title(self._title)
 
 	def toggle_axes(self, show_axes=None):
@@ -318,7 +319,7 @@ class DomainView(object):
 		self._ax.set_xlim(x_min-self._domain_buffer, x_max+self._domain_buffer)
 		self._ax.set_ylim(y_min-self._domain_buffer, y_max+self._domain_buffer)
 		#self._ax.axis('equal')
-
+		#self._ax.set_aspect('equal', 'box')
 		self._draw()
 
 	def change_domain(self, new_domain):
@@ -467,7 +468,7 @@ class DomainView(object):
 
 		self.center_view_to_domain()
 
-	def plot_path(self, path, color='xkcd:steel grey', plot_endpoints=False):
+	def plot_path(self, path, color='xkcd:steel grey', plot_points=False, path_width=2):
 		# need to check if path object is ok
 
 		undefined_color = color
@@ -483,16 +484,19 @@ class DomainView(object):
 			segment_colors.extend(itertools.repeat(undefined_color, path.size-1))
 
 		x,y = zip(*path.coord_list)
-		self._ax.plot(x, y, 'o', color=undefined_color, markersize=4, zorder=1)
-		if plot_endpoints:
-			self._ax.plot(x[0], y[0], marker=5, color='xkcd:kiwi green', markersize=25)
-			self._ax.plot(x[-1], y[-1], marker=9, color='xkcd:tomato', markersize=25)
 
+		if plot_points:
+			self._ax.plot(x, y, 'o', color=undefined_color, markersize=4, zorder=1)
+		
 		for seg_coords, seg_color in zip(coord_pairs, segment_colors):
 			x,y = zip(*seg_coords)
-			self._ax.plot(x, y, color=seg_color, linewidth=2, solid_capstyle='round', zorder=1)
+			self._ax.plot(x, y, color=seg_color, linewidth=path_width, solid_capstyle='round', zorder=1)
 		
 		self.center_view_to_domain()
+
+	def hide_axes_labels(self):
+		self._ax.set_xticks([])
+		self._ax.set_yticks([])
 
 	def animate_path(self, path, color='xkcd:steel grey', pause=0.2):
 
@@ -556,6 +560,8 @@ class DomainView(object):
 		egress = path.coord_list[-1]
 		self._ax.plot(*ingress, marker=ingress_marker, color=ingress_color, markersize=marker_size)
 		self._ax.plot(*egress, marker=egress_marker, color=egress_color, markersize=marker_size)
+
+		self._draw()
 
 	def pretty_plot_path(self, path, offset=0.25, color='xkcd:black', linewidth=2):
 		tuple_coords = list(map(tuple, path.coord_list))
