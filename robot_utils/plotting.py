@@ -382,7 +382,7 @@ class DomainView(object):
 
 		self.center_view_to_domain()
 
-	def plot_vf(self, field, num_cells=(25,25), scale=0.05, pivot='mid', minshaft=1.5):
+	def plot_vf(self, field, num_cells=(25,25), scale=0.05, pivot='mid', minshaft=1.5, ticks=None):
 		x_min, y_min, x_max, y_max = self._domain.bounds
 
 		x_cell_count = num_cells[0]
@@ -404,8 +404,15 @@ class DomainView(object):
 						clim=clim, angles='xy', scale_units='xy', scale=scale, pivot=pivot, minshaft=minshaft, 
 						cmap=plt.get_cmap('rainbow'))
 
-		c = self._fig.colorbar(q, ax=self._ax)
-		c.set_label('m/s')
+		self._draw()
+
+		if not ticks:
+			ticks = [float(i) for i in np.linspace(*clim, 6)]
+
+		cax = self._fig.add_axes([self._ax.get_position().x1+0.01,self._ax.get_position().y0,0.02,self._ax.get_position().height])
+		c = self._fig.colorbar(q, cax=cax, ticks=ticks)
+		c.set_label('Flow Speed (m/s)', size=16, labelpad=10)
+		c.ax.tick_params(labelsize=16)
 
 		self._draw()
 
