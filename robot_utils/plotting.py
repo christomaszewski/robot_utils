@@ -563,6 +563,16 @@ class DomainView(object):
 
 			self._draw()
 
+	def plot_coverage(self, coord_list, sensor_radius):
+		path_line = shapely.geometry.LineString(coord_list)
+		sensor_coverage = path_line.buffer(sensor_radius)
+
+		coverage_patch = PolygonPatch(sensor_coverage, facecolor='xkcd:goldenrod', edgecolor='xkcd:dark grey', alpha=0.5, zorder=1)
+		self._ax.add_patch(coverage_patch)
+
+		self.center_view_to_domain()
+
+
 	def plot_endpoints(self, path, ingress_marker=5, ingress_color='xkcd:kiwi green', egress_marker='X', egress_color='xkcd:tomato', marker_size=25):
 		ingress = path.coord_list[0]
 		egress = path.coord_list[-1]
