@@ -517,13 +517,13 @@ class DomainView(object):
 		
 		self.center_view_to_domain()
 
-	def plot_constraints(self, constraints, color='xkcd:melon', plot_direction=True, plot_sequence=True):
+	def plot_constraints(self, constraints, color='xkcd:melon', plot_direction=True, plot_sequence=True, line_width=2):
 		for idx, c in enumerate(constraints):
 			c_coords = c.get_coord_list()
 
 			x,y = zip(*c_coords)
 			self._ax.plot(x, y, 'o', color=color, markersize=4, zorder=1)
-			self._ax.plot(x, y, color=color, linewidth=2, solid_capstyle='round')
+			self._ax.plot(x, y, color=color, linewidth=line_width, solid_capstyle='round')
 
 			if c.is_constrained('direction') and plot_direction:
 				#direction = c.direction
@@ -572,6 +572,16 @@ class DomainView(object):
 
 		self.center_view_to_domain()
 
+	def plot_robot(self, coords, vehicle_radius, sensor_radius):
+		pt = shapely.geometry.Point(*coords)
+
+		vehicle_patch = PolygonPatch(pt.buffer(vehicle_radius), facecolor='xkcd:grey', edgecolor='xkcd:dark grey', alpha=1.0, zorder=2)
+		sensor_patch = PolygonPatch(pt.buffer(sensor_radius), facecolor='xkcd:goldenrod', edgecolor='xkcd:dark grey', alpha=1.0, zorder=1)
+
+		self._ax.add_patch(sensor_patch)
+		self._ax.add_patch(vehicle_patch)
+
+		self.center_view_to_domain()
 
 	def plot_endpoints(self, path, ingress_marker=5, ingress_color='xkcd:kiwi green', egress_marker='X', egress_color='xkcd:tomato', marker_size=25):
 		ingress = path.coord_list[0]
