@@ -476,6 +476,24 @@ class DomainView(object):
 
 		self.center_view_to_domain()
 
+	def plot_offsets(self, vehicle_radius, sensor_radius, domain_bg='xkcd:water blue', config_bg='xkcd:dark mint green', sensor_bg='xkcd:marigold'):
+		self.clear_figure()
+
+		domain_patch = PolygonPatch(self._domain.polygon, facecolor=domain_bg, edgecolor=domain_bg, alpha=1.0, zorder=-10)
+		self._ax.add_patch(domain_patch)
+
+		config_boundary, _ = self._domain.get_configuration_space(vehicle_radius)
+
+		config_patch = PolygonPatch(config_boundary, facecolor=config_bg, edgecolor=config_bg, alpha=1.0, zorder=-5)
+		self._ax.add_patch(config_patch)
+
+		sensor_boundary, _ = self._domain.get_configuration_space(sensor_radius)
+
+		sensor_patch = PolygonPatch(sensor_boundary, facecolor=sensor_bg, edgecolor=sensor_bg, alpha=1.0, zorder=-3)
+		self._ax.add_patch(sensor_patch)
+
+		self.center_view_to_domain()
+
 	def plot_path(self, path, color='xkcd:steel grey', plot_points=False, path_width=2):
 		# need to check if path object is ok
 
