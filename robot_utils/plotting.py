@@ -590,11 +590,11 @@ class DomainView(object):
 
 		self.center_view_to_domain()
 
-	def plot_robot(self, coords, vehicle_radius, sensor_radius):
+	def plot_robot(self, coords, vehicle_radius, sensor_radius, robot_color='xkcd:grey', sensor_color='xkcd:goldenrod'):
 		pt = shapely.geometry.Point(*coords)
 
-		vehicle_patch = PolygonPatch(pt.buffer(vehicle_radius), facecolor='xkcd:grey', edgecolor='xkcd:dark grey', alpha=1.0, zorder=2)
-		sensor_patch = PolygonPatch(pt.buffer(sensor_radius), facecolor='xkcd:goldenrod', edgecolor='xkcd:dark grey', alpha=1.0, zorder=1)
+		vehicle_patch = PolygonPatch(pt.buffer(vehicle_radius), facecolor=robot_color, edgecolor='xkcd:dark grey', alpha=1.0, zorder=2)
+		sensor_patch = PolygonPatch(pt.buffer(sensor_radius), facecolor=sensor_color, edgecolor='xkcd:dark grey', alpha=1.0, zorder=1)
 
 		self._ax.add_patch(sensor_patch)
 		self._ax.add_patch(vehicle_patch)
