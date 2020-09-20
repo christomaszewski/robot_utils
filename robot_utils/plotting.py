@@ -13,7 +13,7 @@ class MapView(object):
 
 	api_key = 'pk.eyJ1IjoiY2hyaXN0b21hc3pld3NraSIsImEiOiJjanJtN2h1OTAwZ2lnM3ltdDBmZDFjc3FyIn0.2i83Ad3s4mi9DR6ZLG-CFg'
 
-	def __init__(self, bounds, title='untitled', style='terrain-rgb', pause=0.00001):
+	def __init__(self, bounds, title='untitled', style='terrain-rgb', pause=0.00001, z_level=17):
 		self._bounds = bounds
 		x_min, y_min, x_max, y_max = bounds
 
@@ -35,7 +35,7 @@ class MapView(object):
 
 		self._ax.set_extent(extents, crs=ccrs.UTM(17))
 
-		self._ax.add_image(self._imagery, 17) # Satellite 17
+		self._ax.add_image(self._imagery, z_level) # Satellite 17
 		print('init successful')
 
 	@classmethod
