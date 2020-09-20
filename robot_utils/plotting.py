@@ -96,6 +96,34 @@ class MapView(object):
 
 		self._draw()
 
+	def plot_path(self, path, color='xkcd:steel grey', plot_points=False, path_width=2):
+		# need to check if path object is ok
+
+		undefined_color = color
+		color_map = matplotlib.cm.get_cmap('Spectral')
+
+		coord_pairs = zip(path.coord_list, path.coord_list[1:])
+		segment_colors = []
+		
+		# Currently colors path by thrust constraint, change to be able to specify what to color by
+		if path.is_constrained('thrust'):
+			segment_colors.extend(map(lambda thrust_range: undefined_color if thrust_range is None else color_map(np.mean(thrust_range)), path.thrust[1:]))
+		else:
+			segment_colors.extend(itertools.repeat(undefined_color, path.size-1))
+
+		x,y = zip(*path.coord_list)
+
+		if plot_points:
+			self._ax.plot(x, y, 'o', color=undefined_color, markersize=4, zorder=1)
+		
+		for seg_coords, seg_color in zip(coord_pairs, segment_colors):
+			x,y = zip(*seg_coords)
+			self._ax.plot(x, y, color=seg_color, linewidth=path_width, solid_capstyle='round', zorder=1)
+
+		self._draw()
+
+	# Legacy plot_path func
+	"""
 	def plot_path(self, path, plot_endpoints=False):
 		# need to check if path object is ok
 
@@ -123,6 +151,7 @@ class MapView(object):
 			self._ax.plot(x, y, color=seg_color, linewidth=5, solid_capstyle='round', zorder=1, transform=ccrs.UTM(17))
 		
 		self._draw()
+	"""
 
 	def pretty_plot_path(self, path, offset=0.25, color='xkcd:steel grey', linewidth=4):
 		coord_pairs = zip(path.coord_list, path.coord_list[1:])
