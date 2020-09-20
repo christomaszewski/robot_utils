@@ -13,7 +13,7 @@ class MapView(object):
 
 	api_key = 'pk.eyJ1IjoiY2hyaXN0b21hc3pld3NraSIsImEiOiJjanJtN2h1OTAwZ2lnM3ltdDBmZDFjc3FyIn0.2i83Ad3s4mi9DR6ZLG-CFg'
 
-	def __init__(self, bounds, title='untitled', style='terrain-rgb', pause=0.00001, map_source='mapbox', z_level=17):
+	def __init__(self, bounds, title='untitled', style='terrain-rgb', pause=0.00001, map_source='mapbox', map_style='satellite', z_level=17):
 		self._bounds = bounds
 		x_min, y_min, x_max, y_max = bounds
 
@@ -26,8 +26,8 @@ class MapView(object):
 		self._title = title
 		self._show_axes = True
 
-		if map_source == 'google':
-			self._imagery = GoogleTiles()
+		if map_source.lower() == 'google':
+			self._imagery = GoogleTiles(style=map_style.lower())
 		else:
 			self._imagery = MapboxTiles(MapView.api_key, style)
 			self._imagery._image_url = self._image_url
