@@ -13,7 +13,7 @@ class MapView(object):
 
 	api_key = 'pk.eyJ1IjoiY2hyaXN0b21hc3pld3NraSIsImEiOiJjanJtN2h1OTAwZ2lnM3ltdDBmZDFjc3FyIn0.2i83Ad3s4mi9DR6ZLG-CFg'
 
-	def __init__(self, bounds, title='untitled', style='terrain-rgb', pause=0.00001, extent_buffer=10., map_source='mapbox', map_style='satellite', z_level=17):
+	def __init__(self, bounds, title='', utm_zone=17, pause=0.00001, extent_buffer=10., map_source='mapbox', map_style='satellite', z_level=17):
 		self._bounds = bounds
 		x_min, y_min, x_max, y_max = bounds
 
@@ -21,26 +21,29 @@ class MapView(object):
 		self._fig = plt.figure(figsize=(12,10), dpi=100) # todo make this use domain size
 		self._ax = None
 		self._clim = None
+		self._z_level = z_level
 
 		self._pause_length = pause
 		self._title = title
 		self._show_axes = True
 
+		self._utm_zone = utm_zone
+
 		if map_source.lower() == 'google':
 			self._imagery = GoogleTiles(style=map_style.lower())
 		else:
-			self._imagery = MapboxTiles(MapView.api_key, style)
+			map_style = 'terrain-rgb'
+			self._imagery = MapboxTiles(MapView.api_key, map_style)
 			self._imagery._image_url = self._image_url
 
 		self._ax = self._fig.add_subplot(1,1,1, projection=self._imagery.crs)
 		
 		extents = [x_min-extent_buffer, x_max+extent_buffer, y_min-extent_buffer, y_max+extent_buffer]
 
-		self._ax.set_extent(extents, crs=ccrs.UTM(17))
+		self._ax.set_extent(extents, crs=ccrs.UTM(self._utm_zone))
 
-		self._ax.add_image(self._imagery, z_level) # Satellite 17
-		print('init successful')
-
+		self._ax.add_image(self._imagery, self._z_level) # Satellite 17
+		
 	@classmethod
 	def from_domain(cls, domain, **kwargs):
 		return cls(domain.bounds, **kwargs)
@@ -63,9 +66,11 @@ class MapView(object):
 		self._ax.axis('equal')
 		self._ax.set_title(self._title)
 
+		self._ax.add_image(self._imagery, self._z_level)
+
 	def plot_domain_boundary(self, domain, color='xkcd:water blue'):
 		x,y = domain.polygon.exterior.xy
-		self._ax.plot(x,y, color=color, linewidth=3, solid_capstyle='round', zorder=2, transform=ccrs.UTM(17))
+		self._ax.plot(x,y, color=color, linewidth=3, solid_capstyle='round', zorder=2, transform=ccrs.UTM(self._utm_zone))
 
 		self._draw()
 
@@ -87,7 +92,7 @@ class MapView(object):
 		clim = [np.nanmin(magnitudes), np.nanmax(magnitudes)]
 
 		print("plotting quiver")
-		q = self._ax.quiver(x_grid, y_grid, x_samples, y_samples, magnitudes, transform=ccrs.UTM(17), 
+		q = self._ax.quiver(x_grid, y_grid, x_samples, y_samples, magnitudes, transform=ccrs.UTM(self._utm_zone), 
 						clim=clim, angles='xy', scale_units='xy', scale=0.05, pivot='mid', #minshaft=2.0, 
 						cmap=plt.get_cmap('rainbow'))
 
@@ -114,11 +119,11 @@ class MapView(object):
 		x,y = zip(*path.coord_list)
 
 		if plot_points:
-			self._ax.plot(x, y, 'o', color=undefined_color, markersize=4, zorder=1)
+			self._ax.plot(x, y, 'o', color=undefined_color, markersize=4, zorder=1, transform=ccrs.UTM(self._utm_zone))
 		
 		for seg_coords, seg_color in zip(coord_pairs, segment_colors):
 			x,y = zip(*seg_coords)
-			self._ax.plot(x, y, color=seg_color, linewidth=path_width, solid_capstyle='round', zorder=1)
+			self._ax.plot(x, y, color=seg_color, linewidth=path_width, solid_capstyle='round', zorder=1, transform=ccrs.UTM(self._utm_zone))
 
 		self._draw()
 
@@ -178,7 +183,7 @@ class MapView(object):
 
 			for s in segs[:-1]:
 				x,y = zip(*s)
-				self._ax.plot(x,y, color=color, linewidth=linewidth, solid_capstyle='round', zorder=1, transform=ccrs.UTM(17))
+				self._ax.plot(x,y, color=color, linewidth=linewidth, solid_capstyle='round', zorder=1, transform=ccrs.UTM(self._utm_zone))
 
 				plotted_segments.add(s)
 				plotted_verts.update(s)
@@ -195,7 +200,7 @@ class MapView(object):
 				prev_seg_adjusted = True
 
 			x,y = zip(*last_seg)
-			self._ax.plot(x,y, color=color, linewidth=linewidth, solid_capstyle='round', zorder=1, transform=ccrs.UTM(17))
+			self._ax.plot(x,y, color=color, linewidth=linewidth, solid_capstyle='round', zorder=1, transform=ccrs.UTM(self._utm_zone))
 			plotted_segments.add(last_seg)
 			plotted_verts.update(last_seg)
 
@@ -203,8 +208,8 @@ class MapView(object):
 
 		ingress = path.coord_list[0]
 		egress = prev_cp[-1]
-		self._ax.plot(*ingress, marker=5, color='xkcd:kiwi green', markersize=25, transform=ccrs.UTM(17))
-		self._ax.plot(*egress, marker="X", color='xkcd:tomato', markersize=25, transform=ccrs.UTM(17))
+		self._ax.plot(*ingress, marker=5, color='xkcd:kiwi green', markersize=25, transform=ccrs.UTM(self._utm_zone))
+		self._ax.plot(*egress, marker="X", color='xkcd:tomato', markersize=25, transform=ccrs.UTM(self._utm_zone))
 
 		self._draw()
 
