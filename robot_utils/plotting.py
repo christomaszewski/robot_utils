@@ -72,7 +72,7 @@ class MapView(object):
 
 	def plot_domain_boundary(self, domain, color='xkcd:water blue'):
 		x,y = domain.polygon.exterior.xy
-		self._ax.plot(x,y, color=color, linewidth=3, solid_capstyle='round', zorder=2, transform=ccrs.UTM(self._utm_zone))
+		self._ax.plot(x,y, color=color, linewidth=3, solid_capstyle='round', zorder=0, transform=ccrs.UTM(self._utm_zone))
 
 		self._draw()
 
@@ -103,16 +103,16 @@ class MapView(object):
 
 		self._draw()
 
-	def plot_plan(self, path, ingress_color='xkcd:emerald green', egress_color='xkcd:tomato', path_color='xkcd:teal blue', path_width=3):
+	def plot_plan(self, path, ingress_color='xkcd:emerald green', egress_color='xkcd:tomato', path_color='xkcd:teal blue', marker_color='xkcd:black', path_width=3):
 		x,y = zip(*path.coord_list)
 
 		crs = ccrs.UTM(self._utm_zone)
 
-		self._ax.plot(x[:2], y[:2], color=ingress_color, linewidth=path_width+1, solid_capstyle='round', zorder=1, transform=crs)
+		self._ax.plot(x[:2], y[:2], color=ingress_color, linewidth=path_width, solid_capstyle='round', zorder=1, transform=crs)
 		self._ax.plot(x[1:-1], y[1:-1], color=path_color, linewidth=path_width, solid_capstyle='round', zorder=2, transform=crs)
-		self._ax.plot(x[-2:], y[-2:], color=egress_color, linewidth=path_width-1, solid_capstyle='round', zorder=3, transform=crs)
+		self._ax.plot(x[-2:], y[-2:], color=egress_color, linewidth=path_width, solid_capstyle='round', zorder=3, transform=crs)
 
-		self._ax.plot(x[0], y[0], 'o', color=ingress_color, markersize=path_width+2, zorder=4, transform=ccrs.UTM(self._utm_zone))
+		self._ax.plot(x[0], y[0], 'o', color=marker_color, markersize=path_width+2, zorder=4, transform=ccrs.UTM(self._utm_zone))
 
 		self._draw()
 
