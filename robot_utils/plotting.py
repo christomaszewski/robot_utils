@@ -37,6 +37,7 @@ class MapView(object):
 			self._imagery._image_url = self._image_url
 
 		self._ax = self._fig.add_subplot(1,1,1, projection=self._imagery.crs)
+		self._ax.axis('equal')
 		
 		self._extents = [x_min-extent_buffer, x_max+extent_buffer, y_min-extent_buffer, y_max+extent_buffer]
 
@@ -102,16 +103,16 @@ class MapView(object):
 
 		self._draw()
 
-	def plot_plan(self, path, ingress_color='xkcd:emerald green', egress_color='xkcd:tomato', path_color='xkcd:steel grey', path_width=3):
+	def plot_plan(self, path, ingress_color='xkcd:emerald green', egress_color='xkcd:tomato', path_color='xkcd:teal blue', path_width=3):
 		x,y = zip(*path.coord_list)
 
 		crs = ccrs.UTM(self._utm_zone)
 
-		self._ax.plot(x[:2], y[:2], color=ingress_color, linewidth=path_width, solid_capstyle='round', zorder=1, transform=crs)
-		self._ax.plot(x[1:-2], y[1:-2], color=path_color, linewidth=path_width, solid_capstyle='round', zorder=1, transform=crs)
-		self._ax.plot(x[-2:], y[-2:], color=egress_color, linewidth=path_width, solid_capstyle='round', zorder=1, transform=crs)
+		self._ax.plot(x[:2], y[:2], color=ingress_color, linewidth=path_width+1, solid_capstyle='round', zorder=1, transform=crs)
+		self._ax.plot(x[1:-2], y[1:-2], color=path_color, linewidth=path_width, solid_capstyle='round', zorder=2, transform=crs)
+		self._ax.plot(x[-2:], y[-2:], color=egress_color, linewidth=path_width-1, solid_capstyle='round', zorder=3, transform=crs)
 
-		self._ax.plot(x[0], y[0], 'o', color=ingress_color, markersize=4, zorder=2, transform=ccrs.UTM(self._utm_zone))
+		self._ax.plot(x[0], y[0], 'o', color=ingress_color, markersize=path_width+2, zorder=4, transform=ccrs.UTM(self._utm_zone))
 
 		self._draw()
 
