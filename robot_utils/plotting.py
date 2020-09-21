@@ -38,9 +38,9 @@ class MapView(object):
 
 		self._ax = self._fig.add_subplot(1,1,1, projection=self._imagery.crs)
 		
-		extents = [x_min-extent_buffer, x_max+extent_buffer, y_min-extent_buffer, y_max+extent_buffer]
+		self._extents = [x_min-extent_buffer, x_max+extent_buffer, y_min-extent_buffer, y_max+extent_buffer]
 
-		self._ax.set_extent(extents, crs=ccrs.UTM(self._utm_zone))
+		self._ax.set_extent(self._extents, crs=ccrs.UTM(self._utm_zone))
 
 		self._ax.add_image(self._imagery, self._z_level) # Satellite 17
 		
@@ -65,6 +65,7 @@ class MapView(object):
 		self._ax = self._fig.add_subplot(1,1,1, projection=self._imagery.crs)
 		self._ax.axis('equal')
 		self._ax.set_title(self._title)
+		self._ax.set_extent(self._extents, crs=ccrs.UTM(self._utm_zone))
 
 		self._ax.add_image(self._imagery, self._z_level)
 
@@ -98,6 +99,19 @@ class MapView(object):
 
 		c = self._fig.colorbar(q, ax=self._ax)
 		c.set_label('m/s')
+
+		self._draw()
+
+	def plot_plan(self, path, ingress_color='xkcd:emerald green', egress_color='xkcd:tomato', path_color='xkcd:steel grey', path_width=3):
+		x,y = zip(*path.coord_list)
+
+		crs = ccrs.UTM(self._utm_zone)
+
+		self._ax.plot(x[:2], y[:2], color=ingress_color, linewidth=path_width, solid_capstyle='round', zorder=1, transform=crs)
+		self._ax.plot(x[1:-2], y[1:-2], color=path_color, linewidth=path_width, solid_capstyle='round', zorder=1, transform=crs)
+		self._ax.plot(x[-2:], y[-2:], color=egress_color, linewidth=path_width, solid_capstyle='round', zorder=1, transform=crs)
+
+		self._ax.plot(x[0], y[0], 'o', color=ingress_color, markersize=4, zorder=2, transform=ccrs.UTM(self._utm_zone))
 
 		self._draw()
 
