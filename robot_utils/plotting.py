@@ -160,7 +160,7 @@ class MapView(object):
 					arrow_vec = arrow_len*seg_dir
 					#print(arrow_base[0], arrow_base[1], arrow_vec[0], arrow_vec[1])
 					self._ax.arrow(arrow_base[0], arrow_base[1], arrow_vec[0], arrow_vec[1], fc=color,
-										shape='full', lw=0, length_includes_head=True, head_width=arrow_len/2., zorder=2, transform=crs
+										shape='full', lw=0, length_includes_head=True, head_width=arrow_len/2., zorder=2, transform=crs)
 
 
 			if plot_sequence:
