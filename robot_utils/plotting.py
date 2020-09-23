@@ -103,6 +103,79 @@ class MapView(object):
 
 		self._draw()
 
+	def plot_segments(self, segments, color='xkcd:teal blue', plot_direction=True, plot_sequence=True, line_width=3):
+		for idx, c in enumerate(segments):
+			c_coords = c.get_coord_list()
+
+			x,y = zip(*c_coords)
+			self._ax.plot(x, y, 'o', color=color, markersize=4, zorder=1)
+			self._ax.plot(x, y, color=color, linewidth=line_width, solid_capstyle='round')
+
+
+			if plot_sequence:
+				self._ax.annotate(f"{idx}",
+										xy=c_coords[0], xycoords='data',
+										xytext=(0, -70), textcoords='offset points',
+										size=20,
+										bbox=dict(boxstyle="round",
+										fc=(1.0, 0.7, 0.7),
+										ec=(1., .5, .5)),
+										arrowprops=dict(arrowstyle="wedge,tail_width=1.",
+										fc=(1.0, 0.7, 0.7), ec=(1., .5, .5),
+										patchA=None,
+										patchB=None,
+										relpos=(0.2, 0.8),
+										connectionstyle="arc3,rad=-0.1"))
+
+			self._draw()
+
+
+	def plot_constraints(self, constraints, color='xkcd:teal blue', plot_direction=True, plot_sequence=True, line_width=3):
+		for idx, c in enumerate(constraints):
+			c_coords = c.get_coord_list()
+
+			x,y = zip(*c_coords)
+			self._ax.plot(x, y, 'o', color=color, markersize=4, zorder=1)
+			self._ax.plot(x, y, color=color, linewidth=line_width, solid_capstyle='round')
+
+			if c.is_constrained('direction') and plot_direction:
+				#direction = c.direction
+				coord_pairs = zip(c_coords, c_coords[1:])
+				for cp in coord_pairs:
+					pts = [np.array(pt) for pt in cp]
+					mid_pt = np.mean(pts, axis=0)
+					# Don't need to do any modification for direction because get_coord_list() should return the
+					# coord list in order if direction is constrained
+					#seg_vec = pts[direction[1]] - pts[direction[0]]
+					seg_vec = pts[1] - pts[0]
+					seg_len = np.linalg.norm(seg_vec)
+					seg_dir = seg_vec/seg_len
+					arrow_len = 0.1 * seg_len
+
+					arrow_base = mid_pt - 0.5*arrow_len*seg_dir
+					arrow_vec = arrow_len*seg_dir
+					#print(arrow_base[0], arrow_base[1], arrow_vec[0], arrow_vec[1])
+					self._ax.arrow(arrow_base[0], arrow_base[1], arrow_vec[0], arrow_vec[1], fc=color,
+										shape='full', lw=0, length_includes_head=True, head_width=arrow_len/2., zorder=2)
+
+
+			if plot_sequence:
+				self._ax.annotate(f"{idx}",
+										xy=c_coords[0], xycoords='data',
+										xytext=(0, -70), textcoords='offset points',
+										size=20,
+										bbox=dict(boxstyle="round",
+										fc=(1.0, 0.7, 0.7),
+										ec=(1., .5, .5)),
+										arrowprops=dict(arrowstyle="wedge,tail_width=1.",
+										fc=(1.0, 0.7, 0.7), ec=(1., .5, .5),
+										patchA=None,
+										patchB=None,
+										relpos=(0.2, 0.8),
+										connectionstyle="arc3,rad=-0.1"))
+
+			self._draw()
+
 	def plot_plan(self, path, ingress_color='xkcd:emerald green', egress_color='xkcd:tomato', path_color='xkcd:teal blue', marker_color='xkcd:black', path_width=3):
 		x,y = zip(*path.coord_list)
 
