@@ -103,31 +103,15 @@ class MapView(object):
 
 		self._draw()
 
-	def plot_segments(self, segments, color='xkcd:teal blue', plot_direction=True, plot_sequence=True, line_width=3):
+	def plot_segments(self, segments, line_color='xkcd:teal blue', line_width=3, marker_size=5, marker_color='xkcd:teal blue'):
 		for idx, c_coords in enumerate(segments):
 
 			crs = ccrs.UTM(self._utm_zone)
 
 
 			x,y = zip(*c_coords)
-			self._ax.plot(x, y, 'o', color=color, markersize=5, zorder=1, transform=crs)
-			self._ax.plot(x, y, color=color, linewidth=line_width, solid_capstyle='round', transform=crs)
-
-
-			if plot_sequence:
-				self._ax.annotate(f"{idx}",
-										xy=c_coords[0], xycoords='data',
-										xytext=(0, -70), textcoords='offset points',
-										size=20,
-										bbox=dict(boxstyle="round",
-										fc=(1.0, 0.7, 0.7),
-										ec=(1., .5, .5)),
-										arrowprops=dict(arrowstyle="wedge,tail_width=1.",
-										fc=(1.0, 0.7, 0.7), ec=(1., .5, .5),
-										patchA=None,
-										patchB=None,
-										relpos=(0.2, 0.8),
-										connectionstyle="arc3,rad=-0.1"))
+			self._ax.plot(x, y, 'o', color=marker_color, markersize=marker_size, zorder=1, transform=crs)
+			self._ax.plot(x, y, color=line_color, linewidth=line_width, solid_capstyle='round', transform=crs)
 
 			self._draw()
 
