@@ -104,8 +104,7 @@ class MapView(object):
 		self._draw()
 
 	def plot_segments(self, segments, color='xkcd:teal blue', plot_direction=True, plot_sequence=True, line_width=3):
-		for idx, c in enumerate(segments):
-			c_coords = c.get_coord_list()
+		for idx, c_coords in enumerate(segments):
 
 			x,y = zip(*c_coords)
 			self._ax.plot(x, y, 'o', color=color, markersize=4, zorder=1)
