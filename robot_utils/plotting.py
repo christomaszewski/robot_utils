@@ -106,9 +106,12 @@ class MapView(object):
 	def plot_segments(self, segments, color='xkcd:teal blue', plot_direction=True, plot_sequence=True, line_width=3):
 		for idx, c_coords in enumerate(segments):
 
+			crs = ccrs.UTM(self._utm_zone)
+
+
 			x,y = zip(*c_coords)
-			self._ax.plot(x, y, 'o', color=color, markersize=4, zorder=1)
-			self._ax.plot(x, y, color=color, linewidth=line_width, solid_capstyle='round')
+			self._ax.plot(x, y, 'o', color=color, markersize=5, zorder=1, transform=crs)
+			self._ax.plot(x, y, color=color, linewidth=line_width, solid_capstyle='round', transform=crs)
 
 
 			if plot_sequence:
@@ -133,9 +136,11 @@ class MapView(object):
 		for idx, c in enumerate(constraints):
 			c_coords = c.get_coord_list()
 
+			crs = ccrs.UTM(self._utm_zone)
+
 			x,y = zip(*c_coords)
-			self._ax.plot(x, y, 'o', color=color, markersize=4, zorder=1)
-			self._ax.plot(x, y, color=color, linewidth=line_width, solid_capstyle='round')
+			self._ax.plot(x, y, 'o', color=color, markersize=4, zorder=1, transform=crs)
+			self._ax.plot(x, y, color=color, linewidth=line_width, solid_capstyle='round', transform=crs)
 
 			if c.is_constrained('direction') and plot_direction:
 				#direction = c.direction
@@ -155,7 +160,7 @@ class MapView(object):
 					arrow_vec = arrow_len*seg_dir
 					#print(arrow_base[0], arrow_base[1], arrow_vec[0], arrow_vec[1])
 					self._ax.arrow(arrow_base[0], arrow_base[1], arrow_vec[0], arrow_vec[1], fc=color,
-										shape='full', lw=0, length_includes_head=True, head_width=arrow_len/2., zorder=2)
+										shape='full', lw=0, length_includes_head=True, head_width=arrow_len/2., zorder=2, transform=crs
 
 
 			if plot_sequence:
