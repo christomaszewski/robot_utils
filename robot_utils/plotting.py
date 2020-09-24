@@ -76,6 +76,42 @@ class MapView(object):
 
 		self._draw()
 
+
+	def plot_vf(self, field, num_cells=(25,25), scale=0.05, pivot='mid', minshaft=1.5, ticks=None, clim=None):
+		x_min, y_min, x_max, y_max = self._domain.bounds
+
+		x_cell_count = num_cells[0]
+		y_cell_count = num_cells[1]
+
+		wrapper = lambda x,y: field[(x,y)]
+		vectorized_func = np.vectorize(wrapper)
+
+		x_grid, y_grid = np.mgrid[x_min:x_max:(x_cell_count*1j),y_min:y_max:(y_cell_count*1j)] 
+
+		x_samples, y_samples = vectorized_func(x_grid, y_grid)
+
+		magnitudes = np.sqrt(x_samples**2 + y_samples**2)
+
+		if not clim:
+			clim = [np.nanmin(magnitudes), np.nanmax(magnitudes)]
+
+		print("plotting quiver")
+		q = self._ax.quiver(x_grid, y_grid, x_samples, y_samples, magnitudes, 
+						clim=clim, angles='xy', scale_units='xy', scale=scale, pivot=pivot, minshaft=minshaft, 
+						cmap=plt.get_cmap('rainbow'), transform=ccrs.UTM(self._utm_zone))
+
+		self._draw()
+
+		if not ticks:
+			ticks = [float(i) for i in np.linspace(*clim, 6)]
+
+		cax = self._fig.add_axes([self._ax.get_position().x1+0.01,self._ax.get_position().y0,0.02,self._ax.get_position().height])
+		c = self._fig.colorbar(q, cax=cax, ticks=ticks)
+		c.set_label('Flow Speed (m/s)', size=16, labelpad=10)
+		c.ax.tick_params(labelsize=16)
+
+		self._draw()
+
 	def plot_vector_field(self, field):
 		x_min, y_min, x_max, y_max = self._bounds
 
