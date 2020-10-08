@@ -76,7 +76,6 @@ class MapView(object):
 
 		self._draw()
 
-
 	def plot_vf(self, field, num_cells=(25,25), scale=0.05, pivot='mid', minshaft=1.5, ticks=None, clim=None):
 		x_min, y_min, x_max, y_max = self._domain.bounds
 

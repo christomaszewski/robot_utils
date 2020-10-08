@@ -84,6 +84,11 @@ class SimpleSimulator(object):
 
 				effective_vec = effective_vecs[max_speed_index]
 
+				print(f"Effective Vecs: {effective_vecs}")
+				print(f"Speed Vecs: {speed_vecs}")
+				print(f"Effective Movement Vec: {effective_vec}")
+
+
 			elif discriminant > 0:
 				# Multiple solutions, choose solution resulting in greatest speed along desired path
 
@@ -104,7 +109,13 @@ class SimpleSimulator(object):
 
 				effective_vec = effective_vecs[max_speed_index]
 
+				print(f"Effective Vecs: {effective_vecs}")
+				print(f"Speed Vecs: {speed_vecs}")
+				print(f"Effective Movement Vec: {effective_vec}")
+
 			#print(f"Moving with effective vec: {effective_vec} with speed: {np.linalg.norm(effective_vec)}")
+
+			print(f"Effective Movement Vec: {effective_vec}")
 
 			curr_time += self._dt
 			curr_pos += (effective_vec * self._dt)
