@@ -62,6 +62,10 @@ class SimpleSimulator(object):
 
 			discriminant = b**2 - 4*a*c
 
+			print(f"target vec: {target_vec}")
+			print(f"flow vec: {flow_vec}")
+			print(f"perp target vec: {perp_target_vec}")
+			print(f"unit perp target vec: {unit_perp_target_vec}")
 
 			print(f"discriminant: {discriminant}, z,a,b,c: {z},{a},{b},{c}")
 
