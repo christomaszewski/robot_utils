@@ -62,6 +62,9 @@ class SimpleSimulator(object):
 
 			discriminant = b**2 - 4*a*c
 
+
+			print(f"discriminant: {discriminant}, z,a,b,c: {z},{a},{b},{c}")
+
 			if discriminant < 0:
 				print('Error: Not able to compute valid solution')
 				print(f"discriminant: {discriminant}, z,a,b,c: {z},{a},{b},{c}")
@@ -116,7 +119,7 @@ class SimpleSimulator(object):
 			#print(f"Moving with effective vec: {effective_vec} with speed: {np.linalg.norm(effective_vec)}")
 
 			print(f"Effective Movement Vec: {effective_vec}")
-
+			exit()
 			curr_time += self._dt
 			curr_pos += (effective_vec * self._dt)
 			curr_speed = np.linalg.norm(effective_vec)
