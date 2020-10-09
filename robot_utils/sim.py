@@ -36,6 +36,10 @@ class SimpleSimulator(object):
 				last_print_time = curr_time
 
 			flow_vec = np.asarray(self._flow_field[tuple(curr_pos)])
+			if np.isnan(flow_vec[0]) or np.isnan(flow_vec[1]):
+				print('Error: flow vector at current position contains nan', curr_pos, flow_vec)
+				return None
+
 			flow_speed = np.linalg.norm(flow_vec)
 
 			target_vec = curr_target - curr_pos
@@ -62,15 +66,6 @@ class SimpleSimulator(object):
 
 			discriminant = b**2 - 4*a*c
 
-			print(f"current target: {curr_target}")
-			print(f"current pos: {curr_pos}")
-			print(f"Vec field: {self._flow_field[tuple(curr_pos)]}")
-			print(f"target vec: {target_vec}")
-			print(f"flow vec: {flow_vec}")
-			print(f"perp target vec: {perp_target_vec}")
-			print(f"unit perp target vec: {unit_perp_target_vec}")
-
-			print(f"discriminant: {discriminant}, z,a,b,c: {z},{a},{b},{c}")
 
 			if discriminant < 0:
 				print('Error: Not able to compute valid solution')
@@ -94,11 +89,6 @@ class SimpleSimulator(object):
 
 				effective_vec = effective_vecs[max_speed_index]
 
-				print(f"Effective Vecs: {effective_vecs}")
-				print(f"Speed Vecs: {speed_vecs}")
-				print(f"Effective Movement Vec: {effective_vec}")
-
-
 			elif discriminant > 0:
 				# Multiple solutions, choose solution resulting in greatest speed along desired path
 
@@ -119,14 +109,8 @@ class SimpleSimulator(object):
 
 				effective_vec = effective_vecs[max_speed_index]
 
-				print(f"Effective Vecs: {effective_vecs}")
-				print(f"Speed Vecs: {speed_vecs}")
-				print(f"Effective Movement Vec: {effective_vec}")
-
 			#print(f"Moving with effective vec: {effective_vec} with speed: {np.linalg.norm(effective_vec)}")
 
-			print(f"Effective Movement Vec: {effective_vec}")
-			exit()
 			curr_time += self._dt
 			curr_pos += (effective_vec * self._dt)
 			curr_speed = np.linalg.norm(effective_vec)
