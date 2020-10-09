@@ -62,6 +62,9 @@ class SimpleSimulator(object):
 
 			discriminant = b**2 - 4*a*c
 
+			print(f"current target: {curr_target}")
+			print(f"current pos: {curr_pos}")
+			print(f"Vec field: {self._flow_field[tuple(curr_pos)]}")
 			print(f"target vec: {target_vec}")
 			print(f"flow vec: {flow_vec}")
 			print(f"perp target vec: {perp_target_vec}")
