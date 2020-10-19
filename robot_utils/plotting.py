@@ -643,7 +643,7 @@ class DomainView(object):
 
 		self.center_view_to_domain()
 
-	def plot_path(self, path, color='xkcd:steel grey', plot_points=False, path_width=2):
+	def plot_path(self, path, color='xkcd:steel grey', plot_points=False, plot_endpoints=False, path_width=2):
 		# need to check if path object is ok
 
 		undefined_color = color
@@ -666,7 +666,13 @@ class DomainView(object):
 		for seg_coords, seg_color in zip(coord_pairs, segment_colors):
 			x,y = zip(*seg_coords)
 			self._ax.plot(x, y, color=seg_color, linewidth=path_width, solid_capstyle='round', zorder=1)
-		
+
+		if plot_endpoints:
+			start = path.coord_list[0]
+			end = path.coord_list[-1]
+			self._ax.plot(*start, 'o', color='xkcd:green')
+			self._ax.plot(*end, 'o', color='xkcd:red')
+
 		self.center_view_to_domain()
 
 	def hide_axes_labels(self):
