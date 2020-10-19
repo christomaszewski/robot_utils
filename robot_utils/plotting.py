@@ -530,7 +530,7 @@ class DomainView(object):
 
 		self.center_view_to_domain()
 
-	def plot_vf(self, field, num_cells=(25,25), scale=0.05, pivot='mid', minshaft=1.5, ticks=None, clim=None, label_size=18, label_pad=16, **kwargs):
+	def plot_vf(self, field, num_cells=(25,25), scale=0.05, pivot='mid', minshaft=1.5, ticks=None, clim=None, label_size=18, label_pad=16, show_colorbar=True, **kwargs):
 		x_min, y_min, x_max, y_max = self._domain.bounds
 
 		x_cell_count = num_cells[0]
@@ -558,10 +558,11 @@ class DomainView(object):
 		if not ticks:
 			ticks = [float(i) for i in np.linspace(*clim, 6)]
 
-		cax = self._fig.add_axes([self._ax.get_position().x1+0.01,self._ax.get_position().y0,0.02,self._ax.get_position().height])
-		c = self._fig.colorbar(q, cax=cax, ticks=ticks)
-		c.set_label('Flow Speed (m/s)', size=label_size, labelpad=label_pad)
-		c.ax.tick_params(labelsize=label_size)
+		if show_colorbar:
+			cax = self._fig.add_axes([self._ax.get_position().x1+0.01,self._ax.get_position().y0,0.02,self._ax.get_position().height])
+			c = self._fig.colorbar(q, cax=cax, ticks=ticks)
+			c.set_label('Flow Speed (m/s)', size=label_size, labelpad=label_pad)
+			c.ax.tick_params(labelsize=label_size)
 
 		self._draw()
 
