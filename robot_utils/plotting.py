@@ -643,7 +643,7 @@ class DomainView(object):
 
 		self.center_view_to_domain()
 
-	def plot_path(self, path, color='xkcd:steel grey', plot_points=False, plot_endpoints=False, path_width=2):
+	def plot_path(self, path, color='xkcd:steel grey', plot_points=False, plot_endpoints=False, endpoint_size=5, path_width=2):
 		# need to check if path object is ok
 
 		undefined_color = color
@@ -670,8 +670,8 @@ class DomainView(object):
 		if plot_endpoints:
 			start = path.coord_list[0]
 			end = path.coord_list[-1]
-			self._ax.plot(*start, 'o', color='xkcd:green')
-			self._ax.plot(*end, 'o', color='xkcd:red')
+			self._ax.plot(*start, 'o', color='xkcd:green', markersize=endpoint_size)
+			self._ax.plot(*end, 'o', color='xkcd:red', markersize=endpoint_size)
 
 		self.center_view_to_domain()
 
