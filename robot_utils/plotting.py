@@ -690,15 +690,19 @@ class DomainView(object):
 		
 		self.center_view_to_domain()
 
-	def plot_constraints(self, constraints, color='xkcd:melon', plot_direction=True, plot_sequence=True, line_width=2):
+	def plot_constraints(self, constraints, color='xkcd:melon', plot_direction=True, plot_sequence=True, plot_points=False, line_width=2):
 		for idx, c in enumerate(constraints):
 			c_coords = c.get_coord_list()
 
 			x,y = zip(*c_coords)
-			self._ax.plot(x, y, 'o', color=color, markersize=4, zorder=1)
+			
+			if plot_points:
+				self._ax.plot(x, y, 'o', color=color, markersize=4, zorder=1)
+			
 			self._ax.plot(x, y, color=color, linewidth=line_width, solid_capstyle='round')
 
-			if c.is_constrained('direction') and plot_direction:
+			if plot_direction:
+			#if c.is_constrained('direction') and plot_direction:
 				#direction = c.direction
 				coord_pairs = zip(c_coords, c_coords[1:])
 				for cp in coord_pairs:
