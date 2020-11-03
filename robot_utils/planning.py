@@ -3,7 +3,7 @@ import numpy as np
 
 class AStar():
 
-	def __init__(self, domain, heuristic, arrival_threshold=0.01, step_size=0.1):
+	def __init__(self, domain, heuristic, arrival_threshold=0.01, step_size=0.2):
 		self._domain = domain
 		self._heuristic = heuristic
 		self._arrival_threshold = arrival_threshold
@@ -19,6 +19,8 @@ class AStar():
 		cost_so_far = {}
 		came_from[start] = None
 		cost_so_far[start] = 0
+
+		print(self._domain.vertices)
 
 		max_pq_size = 0
 		while not pq.empty():
