@@ -33,7 +33,7 @@ class AStar():
 
 			for dir_step in search_dirs:
 				next_pos = tuple(np.asarray(current_pos) + dir_step)
-				print(next_pos, self._domain.contains_point(next_pos))
+				print(next_pos, self._domain.polygon.contains(shapely.geometry.Point(*next_pos)), self._domain.polygon.intersects(shapely.geometry.Point(*next_pos)))
 				if not self._domain.contains_point(next_pos):
 					continue
 
