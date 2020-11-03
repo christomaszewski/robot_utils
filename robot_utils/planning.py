@@ -45,7 +45,9 @@ class AStar():
 		# reconstruct path
 		current_pos = goal
 		path_coords = []
+		print(start, goal, came_from)
 		while current_pos != start:
+			print(current_pos)
 			path_coords.append(current_pos)
 			current_pos = came_from[current_pos]
 		path_coords.append(start)
