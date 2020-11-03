@@ -1,5 +1,6 @@
 import queue
 import numpy as np
+import shapely
 
 class AStar():
 
