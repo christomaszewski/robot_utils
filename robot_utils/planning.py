@@ -22,6 +22,7 @@ class AStar():
 
 		max_pq_size = 0
 		while not pq.empty():
+			print('pq: ',len(pq))
 			max_pq_size = max(max_pq_size, pq.qsize())
 			_, current_pos = pq.get()
 
