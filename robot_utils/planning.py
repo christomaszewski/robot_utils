@@ -4,7 +4,7 @@ import shapely
 
 class AStar():
 
-	def __init__(self, domain, heuristic, arrival_threshold=0.01, step_size=0.2):
+	def __init__(self, domain, heuristic, arrival_threshold=0.01, step_size=0.01):
 		self._domain = domain
 		self._heuristic = heuristic
 		self._arrival_threshold = arrival_threshold
