@@ -21,8 +21,6 @@ class AStar():
 		came_from[start] = None
 		cost_so_far[start] = 0
 
-		print(self._domain.vertices)
-
 		max_pq_size = 0
 		while not pq.empty():
 			max_pq_size = max(max_pq_size, pq.qsize())
@@ -34,7 +32,6 @@ class AStar():
 
 			for dir_step in search_dirs:
 				next_pos = tuple(np.asarray(current_pos) + dir_step)
-				print(next_pos, self._domain.polygon.contains(shapely.geometry.Point(*next_pos)), self._domain.polygon.intersects(shapely.geometry.Point(*next_pos)))
 				if not self._domain.contains_point(next_pos):
 					continue
 
@@ -49,9 +46,7 @@ class AStar():
 		# reconstruct path
 		current_pos = goal
 		path_coords = []
-		print(start, goal, came_from)
 		while current_pos != start:
-			print(current_pos)
 			path_coords.append(current_pos)
 			current_pos = came_from[current_pos]
 		path_coords.append(start)
