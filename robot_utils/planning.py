@@ -3,7 +3,7 @@ import numpy as np
 
 class AStar():
 
-	def __init__(self, domain, heuristic, arrival_threshold=0.01, step_size=0.05):
+	def __init__(self, domain, heuristic, arrival_threshold=0.01, step_size=0.1):
 		self._domain = domain
 		self._heuristic = heuristic
 		self._arrival_threshold = arrival_threshold
@@ -22,7 +22,6 @@ class AStar():
 
 		max_pq_size = 0
 		while not pq.empty():
-			print('pq: ',pq)
 			max_pq_size = max(max_pq_size, pq.qsize())
 			_, current_pos = pq.get()
 
@@ -32,6 +31,7 @@ class AStar():
 
 			for dir_step in search_dirs:
 				next_pos = tuple(np.asarray(current_pos) + dir_step)
+				print(next_pos, self._domain.contains_point(next_pos))
 				if not self._domain.contains_point(next_pos):
 					continue
 
