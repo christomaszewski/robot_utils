@@ -75,7 +75,7 @@ class MapView(object):
 		x,y = domain.polygon.exterior.xy
 		self._ax.plot(x,y, color=color, linewidth=3, solid_capstyle='round', zorder=1, transform=ccrs.UTM(self._utm_zone))
 
-		domain_patch = mpatches.Polygon(np.array(domain.polygon.exterior.xy), facecolor=color, alpha=alpha, zorder=1, transform=ccrs.UTM(self._utm_zone))
+		domain_patch = mpatches.Polygon(np.array(domain.vertices), facecolor=color, alpha=alpha, zorder=1, transform=ccrs.UTM(self._utm_zone))
 		self._ax.add_patch(domain_patch)
 
 		self._draw()
