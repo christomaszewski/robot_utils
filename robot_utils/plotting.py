@@ -216,7 +216,7 @@ class MapView(object):
 
 		self._draw()
 
-	def plot_path(self, path, color='xkcd:steel grey', plot_points=False, path_width=2):
+	def plot_path(self, path, color='xkcd:steel grey', plot_points=False, plot_endpoints=False, endpoint_size=5, path_width=2):
 		# need to check if path object is ok
 
 		undefined_color = color
@@ -234,13 +234,45 @@ class MapView(object):
 		x,y = zip(*path.coord_list)
 
 		if plot_points:
-			self._ax.plot(x, y, 'o', color=undefined_color, markersize=4, zorder=1, transform=ccrs.UTM(self._utm_zone))
+			self._ax.plot(x, y, 'o', color=undefined_color, markersize=4, zorder=1)
 		
 		for seg_coords, seg_color in zip(coord_pairs, segment_colors):
 			x,y = zip(*seg_coords)
-			self._ax.plot(x, y, color=seg_color, linewidth=path_width, solid_capstyle='round', zorder=1, transform=ccrs.UTM(self._utm_zone))
+			self._ax.plot(x, y, color=seg_color, linewidth=path_width, solid_capstyle='round', zorder=1)
 
-		self._draw()
+		if plot_endpoints:
+			start = path.coord_list[0]
+			end = path.coord_list[-1]
+			self._ax.plot(*start, 'o', color='xkcd:green', markersize=endpoint_size)
+			self._ax.plot(*end, 'o', color='xkcd:red', markersize=endpoint_size)
+
+		self.center_view_to_domain()
+
+	# def plot_path(self, path, color='xkcd:steel grey', plot_points=False, path_width=2):
+	# 	# need to check if path object is ok
+
+	# 	undefined_color = color
+	# 	color_map = matplotlib.cm.get_cmap('Spectral')
+
+	# 	coord_pairs = zip(path.coord_list, path.coord_list[1:])
+	# 	segment_colors = []
+		
+	# 	# Currently colors path by thrust constraint, change to be able to specify what to color by
+	# 	if path.is_constrained('thrust'):
+	# 		segment_colors.extend(map(lambda thrust_range: undefined_color if thrust_range is None else color_map(np.mean(thrust_range)), path.thrust[1:]))
+	# 	else:
+	# 		segment_colors.extend(itertools.repeat(undefined_color, path.size-1))
+
+	# 	x,y = zip(*path.coord_list)
+
+	# 	if plot_points:
+	# 		self._ax.plot(x, y, 'o', color=undefined_color, markersize=4, zorder=1, transform=ccrs.UTM(self._utm_zone))
+		
+	# 	for seg_coords, seg_color in zip(coord_pairs, segment_colors):
+	# 		x,y = zip(*seg_coords)
+	# 		self._ax.plot(x, y, color=seg_color, linewidth=path_width, solid_capstyle='round', zorder=1, transform=ccrs.UTM(self._utm_zone))
+
+	# 	self._draw()
 
 	# Legacy plot_path func
 	"""
