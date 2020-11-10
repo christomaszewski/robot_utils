@@ -70,9 +70,12 @@ class MapView(object):
 
 		self._ax.add_image(self._imagery, self._z_level)
 
-	def plot_domain_boundary(self, domain, color='xkcd:water blue'):
+	def plot_domain_boundary(self, domain, color='xkcd:water blue', show_fill=False, alpha=0.5):
 		x,y = domain.polygon.exterior.xy
 		self._ax.plot(x,y, color=color, linewidth=3, solid_capstyle='round', zorder=1, transform=ccrs.UTM(self._utm_zone))
+
+		domain_patch = PolygonPatch(domain.polygon, facecolor=color, edgecolor=color, alpha=alpha, zorder=1)
+		self._ax.add_patch(domain_patch, transform=ccrs.UTM(self._utm_zone))
 
 		self._draw()
 
