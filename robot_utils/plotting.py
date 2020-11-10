@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib
+import matplotlib.patches as mpatches
 import numpy as np
 from descartes.patch import PolygonPatch
 import itertools
@@ -74,8 +75,8 @@ class MapView(object):
 		x,y = domain.polygon.exterior.xy
 		self._ax.plot(x,y, color=color, linewidth=3, solid_capstyle='round', zorder=1, transform=ccrs.UTM(self._utm_zone))
 
-		domain_patch = PolygonPatch(domain.polygon, facecolor=color, edgecolor=color, alpha=alpha, zorder=1)
-		self._ax.add_patch(domain_patch, transform=ccrs.UTM(self._utm_zone))
+		domain_patch = mpatches.Polygon(np.array(domain.polygon.vertices), facecolor=color, alpha=alpha, zorder=1, transform=ccrs.UTM(self._utm_zone))
+		self._ax.add_patch(domain_patch)
 
 		self._draw()
 
