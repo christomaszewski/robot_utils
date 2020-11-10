@@ -234,19 +234,19 @@ class MapView(object):
 		x,y = zip(*path.coord_list)
 
 		if plot_points:
-			self._ax.plot(x, y, 'o', color=undefined_color, markersize=4, zorder=1)
+			self._ax.plot(x, y, 'o', color=undefined_color, markersize=4, zorder=1, transform=ccrs.UTM(self._utm_zone))
 		
 		for seg_coords, seg_color in zip(coord_pairs, segment_colors):
 			x,y = zip(*seg_coords)
-			self._ax.plot(x, y, color=seg_color, linewidth=path_width, solid_capstyle='round', zorder=1)
+			self._ax.plot(x, y, color=seg_color, linewidth=path_width, solid_capstyle='round', zorder=1, transform=ccrs.UTM(self._utm_zone))
 
 		if plot_endpoints:
 			start = path.coord_list[0]
 			end = path.coord_list[-1]
-			self._ax.plot(*start, 'o', color='xkcd:green', markersize=endpoint_size)
-			self._ax.plot(*end, 'o', color='xkcd:red', markersize=endpoint_size)
+			self._ax.plot(*start, 'o', color='xkcd:green', markersize=endpoint_size, transform=ccrs.UTM(self._utm_zone))
+			self._ax.plot(*end, 'o', color='xkcd:red', markersize=endpoint_size, transform=ccrs.UTM(self._utm_zone))
 
-		self.center_view_to_domain()
+		self._draw()
 
 	# def plot_path(self, path, color='xkcd:steel grey', plot_points=False, path_width=2):
 	# 	# need to check if path object is ok
