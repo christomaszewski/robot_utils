@@ -776,11 +776,11 @@ class DomainView(object):
 
 			self._draw()
 
-	def plot_coverage(self, coord_list, sensor_radius):
+	def plot_coverage(self, coord_list, sensor_radius, coverage_color='xkcd:goldenrod', coverage_boundary_color='xkcd:dark grey', alpha=0.3):
 		path_line = shapely.geometry.LineString(coord_list)
 		sensor_coverage = path_line.buffer(sensor_radius)
 
-		coverage_patch = PolygonPatch(sensor_coverage, facecolor='xkcd:goldenrod', edgecolor='xkcd:dark grey', alpha=0.5, zorder=1)
+		coverage_patch = PolygonPatch(sensor_coverage, facecolor=coverage_color, edgecolor=coverage_boundary_color, alpha=alpha, zorder=1)
 		self._ax.add_patch(coverage_patch)
 
 		self.center_view_to_domain()
