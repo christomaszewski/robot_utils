@@ -80,6 +80,15 @@ class MapView(object):
 
 		self._draw()
 
+	def plot_obstacle_boundary(self, obstacle, color='xkcd:reddish', show_fill=False, alpha=0.5):
+		x,y = obstacle.polygon.exterior.xy
+		self._ax.plot(x,y, color=color, linewidth=3, solid_capstyle='round', zorder=1, transform=ccrs.UTM(self._utm_zone))
+
+		obstacle_patch = mpatches.Polygon(np.array(obstacle.vertices), facecolor=color, alpha=alpha, zorder=1, transform=ccrs.UTM(self._utm_zone))
+		self._ax.add_patch(obstacle_patch)
+
+		self._draw()
+
 	def plot_vf(self, field, num_cells=(25,25), scale=0.05, pivot='mid', minshaft=1.5, ticks=None, clim=None):
 		x_min, y_min, x_max, y_max = self._domain.bounds
 
